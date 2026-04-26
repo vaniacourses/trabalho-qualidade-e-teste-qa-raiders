@@ -9,7 +9,7 @@ import javax.servlet.http.*;
 import java.io.*;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class cadastroTest {
+public class CadastroTest {
     @Test
     public void testProcessamentoCadastro() throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);
