@@ -1,12 +1,12 @@
 package Controllers;
 
-import java.io.BufferedReader;
-import java.io.IOException;
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
 
 public class ServletInputStreamMock extends ServletInputStream {
-    private BufferedReader reader;
+    private final BufferedReader reader;
 
     public ServletInputStreamMock(BufferedReader reader) {
         this.reader = reader;
@@ -18,17 +18,11 @@ public class ServletInputStreamMock extends ServletInputStream {
     }
 
     @Override
-    public boolean isFinished() {
-        return false;
-    }
+    public boolean isFinished() { return false; }
 
     @Override
-    public boolean isReady() {
-        return true;
-    }
+    public boolean isReady() { return true; }
 
     @Override
-    public void setReadListener(ReadListener readListener) {
-        // Não é necessário implementar para testes unitários básicos
-    }
+    public void setReadListener(ReadListener readListener) {}
 }
