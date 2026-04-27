@@ -21,7 +21,7 @@ public class PedidoTest {
     public void deveVincularUmClienteAoPedido() {
         Pedido pedido = new Pedido();
         Cliente cliente = new Cliente();
-        cliente.setNome("João Silva"); // Supondo que sua classe Cliente tenha setNome
+        cliente.setNome("João Silva");
         
         pedido.setCliente(cliente);
         
