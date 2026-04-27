@@ -66,3 +66,4 @@ Para a manipulação de Arquivos JSON dentro do Código Java, e de um Banco de D
 - Link para o Plano de Testes: https://docs.google.com/document/d/1XyHxbNJgMFJG76MgUY0vU-eWYDfmVbzAZv1eNe0G7No/edit?usp=sharing
 - Link para os testes manuais: https://docs.google.com/document/d/1MWN0Kdl-o1lq6h9GUeLx_ytgldcQYsEqpFnZy_02nqw/edit?usp=sharing
 - Link para a ferramenta de registro dos testes: https://codeburgers.testmo.net/runs/1 
+- Link para casos de teste: https://docs.google.com/document/d/1dujNiqBl8LvU-J3ZCebb3JcYdp0hdQ3gIZPoI6AeVmc/edit?usp=sharing
