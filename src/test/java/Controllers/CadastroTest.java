@@ -2,7 +2,6 @@ package Controllers;
 
 import static org.mockito.Mockito.*;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import javax.servlet.http.*;
