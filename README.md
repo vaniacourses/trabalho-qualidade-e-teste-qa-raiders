@@ -60,3 +60,9 @@ Para a manipulação de Arquivos JSON dentro do Código Java, e de um Banco de D
 - O banco de dados será inicializado automaticamente com as tabelas necessárias e o usuário de admin para login.
 - Caso precise alterar configurações, edite os arquivos `docker-compose.yml` ou `banco.sql`.
 - Se houver problemas de cache no navegador, utilize Ctrl+F5 ou limpe o cache manualmente.
+
+
+Testes: 
+Link para o Plano de Testes: https://docs.google.com/document/d/1XyHxbNJgMFJG76MgUY0vU-eWYDfmVbzAZv1eNe0G7No/edit?usp=sharing
+Link para os testes manuais: https://docs.google.com/document/d/1MWN0Kdl-o1lq6h9GUeLx_ytgldcQYsEqpFnZy_02nqw/edit?usp=sharing
+Link para a ferramenta de registro dos testes: https://codeburgers.testmo.net/runs/1 
