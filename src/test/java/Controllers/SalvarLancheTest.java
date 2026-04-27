@@ -169,6 +169,54 @@ public class SalvarLancheTest {
         assertTrue(saida.toString().contains("Lanche Salvo com Sucesso!"));
     }
 
+     @Test
+    public void deveSalvarLancheSemVincularIngredientesQuandoListaVazia() throws Exception {
+        // JSON válido mas sem nenhum ingrediente na lista
+        String jsonSemIngredientes = "{\"nome\":\"X-Burger\",\"descricao\":\"Lanche com queijo\",\"ValorVenda\":22.5,\"ingredientes\":{}}";
+        HttpServletRequest request = mockRequestWithBody(jsonSemIngredientes);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("tokenFuncionario", "abc") });
+        StringWriter saida = new StringWriter();
+        when(response.getWriter()).thenReturn(new PrintWriter(saida));
+ 
+        try (MockedConstruction<ValidadorCookie> validadorMocked = mockConstruction(ValidadorCookie.class,
+                (mock, context) -> when(mock.validarFuncionario(any(Cookie[].class))).thenReturn(true));
+                MockedConstruction<DaoLanche> lancheDaoMocked = mockConstruction(DaoLanche.class,
+                        (mock, context) -> when(mock.pesquisaPorNome(any(Lanche.class))).thenReturn(lancheComId()));
+                MockedConstruction<DaoIngrediente> ingredienteDaoMocked = mockConstruction(DaoIngrediente.class)) {
+ 
+            new salvarLanche().doPost(request, response);
+ 
+            DaoLanche daoLanche = lancheDaoMocked.constructed().get(0);
+ 
+            // Lanche deve ter sido salvo normalmente
+            verify(daoLanche).salvar(any(Lanche.class));
+ 
+            // Mas nenhum ingrediente deve ter sido vinculado
+            verify(daoLanche, times(0)).vincularIngrediente(any(Lanche.class), any(Ingrediente.class));
+        }
+ 
+        assertTrue(saida.toString().contains("Lanche Salvo com Sucesso!"),
+            "Lanche sem ingredientes ainda deve ser salvo com sucesso.");
+    }
+ 
+    @Test
+    public void deveLancarExcecaoQuandoJsonNaoContemCampoNome() throws Exception {
+        // JSON sem o campo obrigatório "nome"
+        String jsonSemNome = "{\"descricao\":\"Lanche com queijo\",\"ValorVenda\":22.5,\"ingredientes\":{\"queijo\":2}}";
+        HttpServletRequest request = mockRequestWithBody(jsonSemNome);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        when(request.getCookies()).thenReturn(new Cookie[] { new Cookie("tokenFuncionario", "abc") });
+ 
+        try (MockedConstruction<ValidadorCookie> validadorMocked = mockConstruction(ValidadorCookie.class,
+                (mock, context) -> when(mock.validarFuncionario(any(Cookie[].class))).thenReturn(true))) {
+ 
+            assertThrows(JSONException.class, () -> new salvarLanche().doPost(request, response),
+                "CT18: JSON sem campo 'nome' deve lançar JSONException.");
+        }
+    }
+ 
+
     private HttpServletRequest mockRequestWithBody(String body) throws IOException {
         HttpServletRequest request = mock(HttpServletRequest.class);
         byte[] bytes = body.getBytes(StandardCharsets.UTF_8);
