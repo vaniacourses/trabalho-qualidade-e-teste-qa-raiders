@@ -88,3 +88,25 @@ Para a manipulação de Arquivos JSON dentro do Código Java, e de um Banco de D
 ### Pré-requisitos
 - [Docker](https://www.docker.com/get-started) e [Docker Compose](https://docs.docker.com/compose/install/)
 - [Java 8+](https://adoptopenjdk.net/) e [Maven](https://maven.apache.org/)
+
+### Testes de Integração
+
+- Padrão dos testes de integração: arquivos terminando com `IT.java` (ex.: `ExampleIntegrationIT.java`).
+- O Maven Failsafe executa os testes na fase `verify`.
+
+Comandos úteis:
+
+```bash
+# Subir infraestrutura necessária (se aplicável)
+docker-compose up --build -d
+
+# Rodar testes unitários e de integração (Failsafe executa durante verify)
+mvn verify
+
+# Ou executar só a fase de integração explicitamente
+mvn failsafe:integration-test failsafe:verify
+```
+
+Observações:
+- Se os testes de integração dependem da aplicação rodando (Tomcat/Glassfish), primeiro suba os containers com `docker-compose up -d` ou inicie o servidor localmente.
+- Substitua o arquivo `src/test/java/integration/ExampleIntegrationIT.java` por testes reais que validem o fluxo da aplicação.
