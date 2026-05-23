@@ -54,5 +54,22 @@ public class CadastroSeleniumTest{
         inputPassword.sendKeys("123456");
         WebElement inputStreet = driver.findElement(By.xpath("//*[@id=\"endereco\"]/input[1]"));
         inputStreet.sendKeys("Rua aaaaa");
+        WebElement inputNumber = driver.findElement(By.xpath("//*[@id=\"endereco\"]/input[2]"));
+        inputNumber.sendKeys("123");
+        WebElement inputNeighborhood = driver.findElement(By.xpath("//*[@id=\"endereco\"]/input[3]"));
+        inputNeighborhood.sendKeys("Icarai");
+        WebElement inputAdressComplement = driver.findElement(By .xpath("//*[@id=\"endereco\"]/input[4]"));
+        inputAdressComplement.sendKeys("142");
+        WebElement inputCity = driver.findElement(By.xpath("//*[@id=\"endereco\"]/input[5]"));
+        inputCity.sendKeys("Niteroi");
+        WebElement comboUF = driver.findElement(By.xpath("//*[@id=\"UF\"]"));
+        comboUF.click();
+        wait.until(ExpectedConditions.elementToBeClickable(By.xpath("//*[@id=\"UF\"]/option[20]")));
+        driver.findElement(By.xpath("//*[@id=\"UF\"]/option[20]")).click();
+        WebElement btnSubscribe = driver.findElement(By.xpath("/html/body/div/div/div/div[2]/div[2]/button"));
+        btnSubscribe.click();
+        WebDriverWait wait1 = new WebDriverWait(driver, Duration.ofSeconds(10));
+        Alert alert1 = wait1.until(ExpectedConditions.alertIsPresent());
+        alert1.accept();
     }
 }
