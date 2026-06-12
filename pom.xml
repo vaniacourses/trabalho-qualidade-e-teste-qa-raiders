@@ -178,6 +178,47 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.15.3</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>Helpers.*</param>
+                        <param>Controllers.cadastro</param>
+                        <param>Controllers.comprar</param>
+                        <param>Controllers.getRelatorioLanches</param>
+                        <param>Controllers.salvarBebida</param>
+                        <param>Controllers.salvarLanche</param>
+                        <param>Controllers.validarToken</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>unit.EncryptadorMD5Test</param>
+                        <param>unit.ValidadorCookieTest</param>
+                        <param>unit.controllers.CadastroTest</param>
+                        <param>unit.controllers.ComprarTest</param>
+                        <param>unit.controllers.GetRelatorioLanchesTest</param>
+                        <param>unit.controllers.SalvarBebidaTest</param>
+                        <param>unit.controllers.SalvarLancheTest</param>
+                        <param>unit.controllers.ValidarTokenTest</param>
+                    </targetTests>
+                    <outputFormats>
+                        <outputFormat>XML</outputFormat>
+                        <outputFormat>HTML</outputFormat>
+                    </outputFormats>
+                    <mutators>
+                        <mutator>DEFAULTS</mutator>
+                    </mutators>
+                    <timestampedReports>false</timestampedReports>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project> 
