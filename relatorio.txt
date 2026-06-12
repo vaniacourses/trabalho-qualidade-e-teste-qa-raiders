@@ -1,0 +1,627 @@
+================================================================================
+       RELATÓRIO TÉCNICO ISO 25010 — LANCHONETE ONLINE
+       QA Raiders | Data de referência: 12/06/2026
+       Elaborado por: Análise técnica QA Senior
+================================================================================
+
+
+================================================================================
+PARTE 1 — DESCRIÇÃO DO SISTEMA
+================================================================================
+
+Sistema: Lanchonete Online — sistema web para pedidos online de uma lanchonete
+Tipo: Aplicação web B2C + painel administrativo
+
+PERFIS DE USUÁRIO:
+  - Cliente (consumidor final): usuário não técnico, acessa pelo browser, espera
+    interface simples e confiável para realizar pedido.
+  - Funcionário (operador): acessa painel admin para cadastrar produtos,
+    gerenciar estoque e controlar abertura/fechamento da lanchonete.
+
+CRITICIDADE: Média. Sem transações financeiras diretas (sem gateway de
+pagamento). A falha impacta vendas e operação. Dados pessoais (nome, endereço,
+telefone) exigem atenção à LGPD.
+
+STACK TECNOLÓGICA:
+  - Backend:  Java 8 + Java EE (Servlets puros, sem Spring) + padrão DAO
+  - Frontend: HTML5 + CSS3 + JavaScript vanilla (Multi-Page Application)
+  - Banco:    PostgreSQL 13
+  - Servidor: Apache Tomcat 8.5
+  - Deploy:   Docker + Docker Compose
+  - Build:    Maven
+  - Testes:   JUnit Jupiter 5.10, Mockito 5.5, Selenium 4.14 + WebDriverManager
+
+ARQUITETURA:
+  Cliente (Browser)
+      ↓ HTTP (XHR via XMLHttpRequest)
+  Frontend HTML/JS (estático, Tomcat)
+      ↓ HTTP POST (JSON body)
+  Controllers (Java Servlets — um servlet por endpoint)
+      ↓ JDBC direto
+  DAO Layer (DaoCliente, DaoBebida, DaoLanche, DaoPedido, etc.)
+      ↓
+  PostgreSQL 13 (Docker container)
+
+ENDPOINTS MAPEADOS (web.xml):
+  POST /cadastro              Cadastro de cliente
+  POST /login                 Login de cliente
+  POST /loginFuncionario      Login de funcionário
+  GET  /logout                Logout
+  GET  /validarToken          Valida token de cliente
+  GET  /validarTokenFunc      Valida token de funcionário
+  GET  /getLanchesCliente     Lista lanches para o cliente
+  GET  /getBebidasCliente     Lista bebidas para o cliente
+  GET  /getIngredientesCliente Ingredientes disponíveis
+  POST /comprar               Finaliza pedido
+  POST /salvarLancheCliente   Monta lanche personalizado
+  POST /salvarIngrediente     Admin: cadastra ingrediente
+  POST /salvarBebida          Admin: cadastra bebida
+  POST /salvarLanche          Admin: cadastra lanche
+  POST /salvarFuncionario     Admin: cadastra funcionário
+  POST /alterarIngrediente    Admin: altera ingrediente
+  POST /alterarBebida         Admin: altera bebida
+  POST /removerIngrediente    Admin: remove ingrediente
+  POST /removerBebida         Admin: remove bebida
+  GET  /getRelatorioLanches   Relatório de lanches vendidos
+  GET  /getRelatorioBebidas   Relatório de bebidas vendidas
+  GET  /getRelatorioGastos    Relatório de gastos com ingredientes
+  POST /alterarStatusLanchonete Abre/fecha a lanchonete
+  GET  /getStatusLanchonete   Status atual (aberta/fechada)
+
+MODELO DE DADOS (banco.sql):
+  tb_status_lanchonete   Status da lanchonete (ABERTO/FECHADO)
+  tb_funcionarios        Funcionários (nome, cargo, salario, fg_ativo, senha TEXT)
+  tb_enderecos           Endereços dos clientes
+  tb_clientes            Clientes (nome, telefone, usuario, senha TEXT, fg_ativo)
+  tb_ingredientes        Ingredientes (nome, desc, qtd, val_compra, val_venda, tipo)
+  tb_lanches             Lanches (nome, descricao, valor_venda, fg_ativo)
+  tb_ingredientes_lanche N:N ingredientes x lanches (com quantidade)
+  tb_pedidos             Pedidos (id_cliente, data_pedido TEXT, valor_total)
+  tb_bebidas             Bebidas (nome, desc, qtd, val_compra, val_venda, tipo)
+  tb_lanches_pedido      N:N pedidos x lanches
+  tb_bebidas_pedido      N:N pedidos x bebidas
+  tb_tokens              Tokens de sessão armazenados no banco
+
+FLUXO DO CLIENTE:
+  index.html → home.html → menu.html → login.html → cadastro.html
+                                                  → carrinho.html → montarLanche.html
+
+FLUXO DO FUNCIONÁRIO:
+  login_Funcionario.html → painel.html → Cadastrar Ingrediente/Bebida/Lanche
+                                       → Gerenciar Estoque
+                                       → Relatórios
+                                       → Abrir/Fechar lanchonete
+
+COBERTURA DE TESTES:
+  Testes Unitários (JUnit + Mockito):
+    - CadastroTest.java
+    - ComprarTest.java
+    - GetRelatorioLanchesTest.java
+    - PedidoTest.java
+    - SalvarBebidaTest.java
+    - SalvarLancheTest.java
+    - ValidarTokenTest.java
+
+  Testes Selenium (Page Object Model):
+    - CadastroSeleniumTest.java    — CN001: cadastro com dados válidos
+    - LoginSeleniumTest.java       — LG001: login válido; LG002: creds inválidas
+    - SalvarBebidaSeleniumTest.java — SB001: salvar bebida no admin
+    - SalvarLanchesSeleniumTest.java — SL001: salvar lanche no admin
+    - GetRelatorioLanchesSeleniumTest.java — RL001, RL002: tabelas de relatório
+
+
+================================================================================
+PARTE 2 — CARACTERÍSTICAS ISO 25010
+================================================================================
+
+
+--------------------------------------------------------------------------------
+1. ADEQUAÇÃO FUNCIONAL
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Completude funcional: % de funções essenciais do domínio implementadas
+  - Correção funcional: % de funções que produzem resultado correto para
+    entradas válidas
+  - Adequação funcional: grau em que as funções facilitam os objetivos do usuário
+
+ESCALA SUGERIDA:
+  - Completude:  Percentual (0–100%) de user stories essenciais cobertas
+  - Correção:    Percentual de casos de teste funcionais que passam (verde)
+  - Adequação:   Escala ordinal 1–5 por fluxo crítico
+
+METAS ESPERADAS (como deveria ser):
+  - Completude >= 85% das funções essenciais implementadas
+    (fluxo cliente: browse → carrinho → pedido;
+     fluxo admin: CRUD de cardápio + relatório + controle de status)
+  - Correção >= 90% dos casos de teste passando em ambiente controlado
+  - Adequação >= 4/5 para fluxos críticos (fazer pedido, login, ver cardápio)
+
+JUSTIFICATIVA:
+  Escopo de negócio pequeno e bem definido. A meta de 85% de completude é
+  razoável para um MVP funcional. Correção abaixo de 90% indicaria falhas
+  graves no fluxo de pedido, que é o coração do negócio.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - O fluxo de pedido está implementado de ponta a ponta (menu → carrinho →
+    comprar). Ponto positivo.
+  - AUSÊNCIAS FUNCIONAIS RELEVANTES:
+    * Sem gestão de status do pedido após a venda (cliente não sabe se o
+      pedido foi aceito, está em preparo ou saiu para entrega)
+    * Sem funcionalidade de cancelamento de pedido
+    * Sem histórico de pedidos visível ao cliente
+    * Sem notificação (push, e-mail ou SMS) ao cliente
+    * Sem confirmação de e-mail no cadastro
+  - controller cadastro.java responde a GET com o mesmo comportamento do POST
+    — inconsistência funcional
+  - Relatórios admin: não há relatório de pedidos por período ou clientes ativos
+
+
+--------------------------------------------------------------------------------
+2. EFICIÊNCIA DE DESEMPENHO
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Comportamento temporal: tempo de resposta das operações críticas
+  - Utilização de recursos: uso de conexões de banco, memória e threads sob carga
+  - Capacidade: volume máximo de usuários/pedidos simultâneos sustentável
+
+ESCALA SUGERIDA:
+  - Tempo de resposta: milissegundos (ms) no percentil P95 com carga representativa
+  - Utilização: % de CPU e memória do container sob 50 usuários simultâneos
+  - Capacidade: RPS (requisições por segundo) sem degradação de tempo > 2x
+
+METAS ESPERADAS (como deveria ser):
+  - Tempo de resposta P95:
+    * Listagens (getLanchesCliente, getBebidasCliente): <= 800ms
+    * Finalizar pedido (/comprar):                     <= 1.500ms
+    * Validação de token (/validarToken):              <= 300ms
+  - Recursos: CPU < 70%, memória < 80% sob carga de 30 usuários simultâneos
+  - Capacidade: >= 20 RPS sem degradação (estimativa conservadora para
+    lanchonete local)
+
+JUSTIFICATIVA:
+  Uma lanchonete local não tem o volume de um e-commerce nacional. Os limites
+  seguem recomendações UX (Nielsen: < 1s para resposta percebida como fluida).
+  O fluxo de compra envolve múltiplas queries encadeadas, justificando limite
+  mais tolerante.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - Cada instância de DAO abre nova conexão JDBC diretamente (sem pool).
+    Em comprar.java, até 4 DAOs distintos por requisição = até 4 conexões
+    simultâneas por pedido.
+  - Sem cache: cada listagem de cardápio executa SELECT completo sem qualquer
+    camada de cache.
+  - listarTodos() retorna todos os registros sem LIMIT/OFFSET (sem paginação).
+  - data_pedido armazenado como TEXT impossibilita uso de índice nativo de data.
+  - Sem índices explícitos no schema além de PKs/FKs.
+  - Sem configuração de performance no conector HTTP do Tomcat.
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  src/java/DAO/DaoUtil.java, src/java/DAO/*.java,
+  src/java/Controllers/comprar.java, banco.sql, docker-compose.yml, Dockerfile
+
+
+--------------------------------------------------------------------------------
+3. COMPATIBILIDADE
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Coexistência: capacidade de operar sem conflito de recursos no ambiente
+  - Interoperabilidade: troca de informações com outros sistemas/browsers
+
+ESCALA SUGERIDA:
+  - Coexistência: Binário (sim/não) — conflito de porta ou recurso
+  - Compatibilidade de browsers: % de funcionalidades nos 3 principais browsers
+  - Compatibilidade de API: % de endpoints com Content-Type correto
+
+METAS ESPERADAS (como deveria ser):
+  - Sistema operando em Docker isolado, sem conflito de porta
+  - >= 95% das funcionalidades em Chrome >= 90, Firefox >= 88, Safari >= 14
+    (desktop e mobile)
+  - 100% dos endpoints com Content-Type: application/json declarado
+
+JUSTIFICATIVA:
+  Aplicações B2C com usuários finais heterogêneos precisam funcionar nos
+  browsers mais comuns. O Docker garante isolamento. Consistência de API é
+  requisito mínimo para interoperabilidade.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - CORS não configurado: sem filtro no web.xml. Qualquer separação futura de
+    frontend/backend causará falha total das requisições XHR.
+  - Uso de srcElement: resposta.srcElement.responseText é propriedade não-padrão
+    (legada do IE). Pode falhar em Safari ou versões futuras de outros browsers.
+  - Uso exclusivo de window.alert() como feedback: bloqueado em iframes e pode
+    ser suprimido em alguns ambientes mobile.
+  - Sem meta viewport em cadastro.html: layout não responsivo por padrão.
+  - Portas 8080 e 5432 fixas no Docker Compose: conflito possível em ambientes
+    com outros serviços.
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  web/view/scripts/conexao.js, web/view/**/*.html, web/WEB-INF/web.xml,
+  docker-compose.yml
+
+
+--------------------------------------------------------------------------------
+4. USABILIDADE
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Reconhecibilidade: usuário identifica que o sistema atende sua necessidade
+  - Facilidade de aprendizado: passos/tempo para completar o fluxo principal
+  - Operabilidade: clareza de feedback, mensagens de erro, navegação
+  - Prevenção de erros: validação que previne erros antes de submeter
+  - Acessibilidade: conformidade WCAG 2.1 nível AA
+
+ESCALA SUGERIDA:
+  - Facilidade de aprendizado: nº de cliques para fluxo principal (meta <= 8)
+  - Taxa de conclusão: % de usuários que completam pedido sem assistência
+  - Mensagens de erro: escala 1–5 (clareza, especificidade, orientação)
+  - Acessibilidade: nº de violações WCAG 2.1 nível A por ferramenta automatizada
+
+METAS ESPERADAS (como deveria ser):
+  - Fluxo principal completável em <= 8 cliques por usuário sem instrução prévia
+  - Taxa de conclusão de tarefa >= 80% em teste com 5 usuários
+  - Mensagens de erro >= 3/5 (identificam o campo e orientam a correção)
+  - Zero violações WCAG 2.1 nível A nos fluxos críticos
+
+JUSTIFICATIVA:
+  Público-alvo é consumidor final não técnico. O fluxo deve ser óbvio. A meta
+  WCAG nível A é o mínimo para inclusão digital. Mensagens de erro claras são
+  críticas em formulários de cadastro.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - Todo feedback ao usuário usa window.alert() nativo: sem estilo da aplicação,
+    bloqueia a thread, não orienta o usuário inline (ao lado do campo com erro).
+  - Bug na validação do cadastro.js: condição (!field.name == 'complemento') —
+    operador ! aplicado a string sempre resulta em false, então "complemento"
+    nunca é excluído da validação obrigatória.
+  - Mensagem de erro usa nome técnico do campo (field.name) em vez de rótulo
+    amigável.
+  - Sem fallback para ausência de JavaScript: se JS falhar, cardápio fica em
+    branco sem mensagem.
+  - Imagens de lanches aleatórias: o cliente não sabe visualmente o que compra.
+  - Sem página de confirmação de pedido: sem número de pedido, itens ou
+    previsão de entrega após compra.
+  - Carrinho em sessionStorage: perdido ao fechar aba ou browser, sem
+    mecanismo de recuperação.
+  - Sem meta viewport declarado e sem CSS responsivo: experiência mobile
+    provavelmente degradada.
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  web/view/cadastro/cadastro.js, web/view/menu/menu.js,
+  web/view/carrinho/carrinho.js, web/view/login/login.js,
+  todos os arquivos .html
+
+
+--------------------------------------------------------------------------------
+5. CONFIABILIDADE
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Maturidade: frequência de falhas em operação normal
+  - Disponibilidade: % do tempo em que o sistema está operacional
+  - Tolerância a falhas: comportamento diante de entradas inválidas ou falhas
+  - Recuperabilidade: capacidade de restaurar operação após falha
+
+ESCALA SUGERIDA:
+  - Maturidade: nº de exceções não tratadas por 100 requisições em stress leve
+  - Disponibilidade: uptime percentual mensal
+  - Tolerância: % de cenários de erro com resposta controlada (não HTTP 500)
+  - Recuperabilidade: tempo de restart do container após falha (segundos)
+
+METAS ESPERADAS (como deveria ser):
+  - 0 exceções Java (stack trace) expostas ao usuário nas respostas HTTP
+  - Disponibilidade >= 99% durante horário de operação da lanchonete
+  - >= 90% dos cenários de entrada inválida retornam resposta controlada
+  - Restart automático em <= 60 segundos com Docker healthcheck
+
+JUSTIFICATIVA:
+  Lanchonete fora do ar no horário de pico perde vendas diretamente. Exceções
+  expostas ao usuário comprometem confiança e podem vazar informações de stack.
+  A recuperabilidade deve ser rápida dada a janela curta de atendimento.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - comprar.java captura NullPointerException do cookie silenciosamente, mas
+    não trata NPE de DaoLanche.pesquisaPorNome() retornando null para lanche
+    inexistente — NPE não tratado confirmado em teste unitário.
+  - Todos os DAOs relançam RuntimeException sem log estruturado. O erro chega
+    ao Tomcat e pode resultar em resposta 500 com stack trace em texto plano.
+  - Sem connection pool: se o banco estiver indisponível momentaneamente, cada
+    requisição falha imediatamente sem retry ou fallback.
+  - Sem "restart: always" no docker-compose.yml: se o container cair, não
+    sobe automaticamente.
+  - Sem logging estruturado: uso de System.out.println() diretamente.
+    Impossível rastrear falhas em produção.
+  - Pedidos vazios aceitos: sistema salva pedido com valor_total = 0.00 e sem
+    itens, sem rejeitar a operação.
+  - data_pedido armazenado como TEXT: uma corrupção nesse campo quebra
+    pesquisaPorData() sem erro claro.
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  src/java/Controllers/comprar.java, src/java/DAO/*.java,
+  docker-compose.yml, src/test/java/Controllers/ComprarTest.java, banco.sql
+
+
+--------------------------------------------------------------------------------
+6. SEGURANÇA  [*** CRITICIDADE: ALTA ***]
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Confidencialidade: dados acessíveis apenas a quem autorizado
+  - Integridade: dados não modificados por entidades não autorizadas
+  - Não-repúdio: evidência de ações realizadas
+  - Responsabilização: rastreabilidade de ações por usuário
+  - Autenticidade: confirmação de identidade do usuário
+  - Resistência: capacidade de resistir a ataques conhecidos (OWASP Top 10)
+
+ESCALA SUGERIDA:
+  - Vulnerabilidades críticas: contagem de vulnerabilidades CWE/OWASP Top 10
+    presentes (meta: 0 críticas, 0 altas)
+  - Conformidade de autenticação: checklist binário de boas práticas
+    (HTTPS, cookies HttpOnly/Secure/SameSite, algoritmo de hash adequado)
+  - SQL Injection: nº de endpoints com query concatenada diretamente com
+    entrada do usuário (meta: 0)
+
+METAS ESPERADAS (como deveria ser):
+  - Zero vulnerabilidades OWASP Top 10 de criticidade alta ou crítica
+  - Cookies de sessão com flags HttpOnly + Secure + SameSite=Strict
+  - Senhas armazenadas com bcrypt, Argon2 ou PBKDF2 com salt individual
+  - Zero queries SQL construídas por concatenação com entrada do usuário
+  - Credenciais de banco injetadas via variável de ambiente (nunca hardcoded)
+  - HTTPS obrigatório em produção
+
+JUSTIFICATIVA:
+  O sistema armazena dados pessoais sujeitos à LGPD. O comprometimento de
+  sessão pode resultar em pedidos fraudulentos. Postura de segurança mínima é
+  obrigatória para qualquer sistema B2C.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+
+  [CRÍTICO] SQL INJECTION em múltiplos DAOs:
+    - DaoCliente.pesquisaPorUsuario(): WHERE usuario='"+cliente.getUsuario()+"'
+    - DaoCliente.pesquisaPorID(): WHERE id_cliente='"+ID+"' (ID vem do cookie)
+    - DaoBebida.pesquisaPorNome(): WHERE nm_bebida='"+nome+"'
+    - DaoLanche.pesquisaPorNome(): mesma vulnerabilidade (2 variantes)
+    - DaoIngrediente, DaoFuncionario.pesquisaPorUsuario(), DaoEndereco,
+      DaoPedido.pesquisaPorData(): mesmo padrão de concatenação
+    - O nome do item no carrinho é enviado pelo frontend e usado como parâmetro
+      para pesquisaPorNome() — vetor de SQL injection via nome de produto
+
+  [CRÍTICO] HASH DE SENHA FRACO:
+    - EncryptadorMD5.java usa MD5 SEM SALT. MD5 é criptograficamente quebrado.
+    - A senha do admin padrão "admin" tem hash 21232f297a57a5a743894a0e4a801fc3
+      — amplamente conhecido em rainbow tables públicas.
+
+  [ALTO] COOKIE DE SESSÃO INSEGURO:
+    - Cookie criado SEM setHttpOnly(true) — vulnerável a XSS acessando
+      document.cookie
+    - SEM setSecure(true) — transmitido em HTTP puro (texto claro)
+    - SEM SameSite — vulnerável a CSRF
+    - Valor do cookie é {id_cliente}-{timestamp} — ID do cliente trivialmente
+      extraível e manipulável
+
+  [ALTO] CREDENCIAIS HARDCODED:
+    - DaoUtil.java: String senha = "123456" e String usuario = "postgres"
+      diretamente no código-fonte
+    - docker-compose.yml: POSTGRES_PASSWORD: 123456 em plaintext
+    - As variáveis de ambiente declaradas no docker-compose.yml com prefixo
+      SPRING_ são inefetivas (código não usa Spring para ler essas variáveis)
+
+  [ALTO] AUSÊNCIA DE VALIDAÇÃO SERVER-SIDE:
+    - cadastro.java não valida nenhum campo no servidor
+    - É possível submeter diretamente ao endpoint com campos vazios,
+      payloads XSS ou strings excessivamente longas
+
+  [MÉDIO] AUSÊNCIA DE RATE LIMITING:
+    - Sem proteção contra brute force em /login e /loginFuncionario
+
+  [MÉDIO] AUSÊNCIA DE HTTPS:
+    - Sem configuração de TLS no Tomcat ou proxy reverso
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  src/java/DAO/DaoUtil.java, src/java/DAO/*.java (todos),
+  src/java/Helpers/EncryptadorMD5.java, src/java/Controllers/login.java,
+  src/java/Helpers/ValidadorCookie.java, banco.sql, docker-compose.yml
+
+
+--------------------------------------------------------------------------------
+7. MANUTENIBILIDADE
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Modularidade: grau em que componentes são independentes e alteráveis
+  - Reusabilidade: grau em que componentes podem ser reutilizados
+  - Analisabilidade: facilidade de diagnosticar causas de falha
+  - Modificabilidade: facilidade de fazer mudanças sem introduzir defeitos
+  - Testabilidade: facilidade de criar testes efetivos
+
+ESCALA SUGERIDA:
+  - Cobertura de testes: % de linhas/branches cobertos (JaCoCo)
+  - Complexidade ciclomática: média de caminhos independentes por método
+  - Acoplamento DAO-Controller: nº de DAOs instanciados sem injeção de
+    dependência (meta: 0)
+  - Duplicação: % de código duplicado (meta: <= 5%)
+
+METAS ESPERADAS (como deveria ser):
+  - Cobertura de testes unitários >= 60% nas classes de negócio
+  - Complexidade ciclomática média <= 10 por método
+  - Zero dependências hardcoded de banco em Controllers
+  - Testes automatizados para todos os fluxos críticos (login, cadastro,
+    comprar, validarToken)
+
+JUSTIFICATIVA:
+  Um sistema acadêmico/de pequeno porte deve ao menos ter os fluxos críticos
+  cobertos. A separação Controller-DAO já existente é positiva, mas sem
+  injeção de dependência dificulta testes unitários isolados.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - Injeção de dependência ausente: todos os DAOs são instanciados via
+    new DaoDAO() nos controllers, forçando uso de mockConstruction (frágil).
+  - Nomenclatura inconsistente: login.java, cadastro.java (minúsculas) vs
+    DaoCliente, EncryptadorMD5 (CamelCase). Violação da convenção Java.
+  - Controllers respondem a GET e POST com a mesma lógica: violação da
+    semântica HTTP (GET em /cadastro cadastra um usuário).
+  - Mutation testing configurado (PIT no pom.xml): ponto positivo.
+  - SonarQube configurado (sonar-project.properties) mas sem pipeline CI/CD:
+    análise não é executada automaticamente.
+  - Cabeçalhos NetBeans ("To change this license header") em todos os arquivos:
+    código gerado com template sem limpeza.
+  - System.out.println(md5.encryptar(cliente.getSenha())) no login: hash de
+    senha impresso nos logs do Tomcat — dado sensível exposto.
+  - Sem logging estruturado (Log4j, SLF4J): impossível rastrear falhas.
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  src/java/Controllers/*.java, src/java/DAO/*.java,
+  src/test/java/Controllers/*.java,
+  src/test/java/selenium/TestSelenium/*.java, pom.xml
+
+
+--------------------------------------------------------------------------------
+8. PORTABILIDADE
+--------------------------------------------------------------------------------
+
+O QUE MEDIR:
+  - Adaptabilidade: capacidade de executar em diferentes ambientes sem
+    modificações
+  - Instalabilidade: facilidade de instalar e desinstalar o sistema
+  - Substituibilidade: capacidade de substituir outro sistema similar
+
+ESCALA SUGERIDA:
+  - Adaptabilidade: nº de configurações hardcoded que impedem execução em
+    ambiente diferente (meta: 0)
+  - Instalabilidade: nº de passos manuais para deploy em ambiente limpo
+    (meta: <= 3 comandos)
+  - Portabilidade de banco: binário — uso de SQL padrão sem stored procedures
+    proprietárias
+
+METAS ESPERADAS (como deveria ser):
+  - Deploy completo funcional com: git clone && docker-compose up (2 comandos)
+  - Zero configurações de ambiente hardcoded no código-fonte
+  - SQL compatível com PostgreSQL sem extensões não-padrão
+  - Aplicação executável em qualquer host com Docker, independente do SO
+
+JUSTIFICATIVA:
+  O Docker é um indicador positivo de portabilidade. Para um sistema
+  acadêmico/pequeno negócio, a facilidade de deploy é crítica para manutenção.
+
+PONTOS DE ATENÇÃO NA IMPLEMENTAÇÃO ATUAL:
+  - Docker Compose funcional: pode ser iniciado com docker-compose up. Banco
+    inicializado automaticamente com banco.sql. Ponto positivo significativo.
+  - DaoUtil.java: URL, usuário e senha do banco hardcoded. Para mudar as
+    credenciais, é necessário recompilar o projeto.
+  - As variáveis SPRING_DATASOURCE_URL/USERNAME/PASSWORD no docker-compose.yml
+    são prefixadas com Spring, mas o código não as lê — inefetivas.
+  - Hostname "db" hardcoded no código Java: funciona dentro do Docker Compose,
+    falha fora dele sem alteração de código.
+  - Erro de formatação no docker-compose.yml: conteúdo do Dockerfile aparece
+    concatenado no final do arquivo — deploy pode falhar diretamente do
+    repositório sem correção manual.
+  - Java 8 e Tomcat 8.5: ambos em fim de suporte. Migração para Java 11/17 e
+    Tomcat 10 exige renomear javax.servlet → jakarta.servlet.
+  - Sem ambiente de staging: único ambiente é local.
+
+ARQUIVOS RELEVANTES PARA AVALIAÇÃO:
+  docker-compose.yml, Dockerfile, src/java/DAO/DaoUtil.java,
+  pom.xml, banco.sql
+
+
+================================================================================
+PARTE 3 — RESUMO EXECUTIVO
+================================================================================
+
++------------------------+--------------------+------------------------------------+
+| Característica         | Nível de Atenção   | Principal Risco                    |
++------------------------+--------------------+------------------------------------+
+| Adequação Funcional    | Moderado           | Sem status de pedido e notificação |
+| Eficiência de Desempenho| Alto              | Sem connection pool; N conexões    |
+| Compatibilidade        | Moderado           | srcElement não-padrão; sem CORS    |
+| Usabilidade            | Alto               | UX via alert(); carrinho volátil   |
+| Confiabilidade         | Alto               | NPEs não tratados; pedidos vazios  |
+| SEGURANÇA              | *** CRÍTICO ***    | SQL injection; MD5 sem salt;       |
+|                        |                    | cookies sem HttpOnly/Secure        |
+| Manutenibilidade       | Moderado           | Sem DI; testes parciais; sem log   |
+| Portabilidade          | Moderado           | Credenciais hardcoded no código    |
++------------------------+--------------------+------------------------------------+
+
+
+================================================================================
+PARTE 4 — GUIA DE ARQUIVOS PARA AVALIAÇÃO POR IA
+================================================================================
+
+Para obter a maior precisão possível na avaliação de cada característica,
+envie os seguintes arquivos:
+
+ADEQUAÇÃO FUNCIONAL:
+  web/WEB-INF/web.xml
+  src/java/Controllers/*.java (todos)
+  web/view/**/*.html (todas as telas)
+  banco.sql
+
+EFICIÊNCIA DE DESEMPENHO:
+  src/java/DAO/DaoUtil.java
+  src/java/DAO/DaoCliente.java
+  src/java/DAO/DaoBebida.java
+  src/java/DAO/DaoLanche.java
+  src/java/DAO/DaoPedido.java
+  src/java/Controllers/comprar.java
+  banco.sql
+  docker-compose.yml
+  Dockerfile
+
+COMPATIBILIDADE:
+  web/view/scripts/conexao.js
+  web/view/cadastro/cadastro.html
+  web/view/menu/menu.html
+  web/view/login/login.html
+  web/WEB-INF/web.xml
+  docker-compose.yml
+
+USABILIDADE:
+  web/view/cadastro/cadastro.js
+  web/view/menu/menu.js
+  web/view/carrinho/carrinho.js
+  web/view/login/login.js
+  web/view/cadastro/cadastro.html
+  web/view/carrinho/carrinho.html
+
+CONFIABILIDADE:
+  src/java/Controllers/comprar.java
+  src/java/DAO/*.java (todos)
+  docker-compose.yml
+  src/test/java/Controllers/ComprarTest.java
+  banco.sql
+
+SEGURANÇA:
+  src/java/DAO/DaoUtil.java
+  src/java/DAO/DaoCliente.java
+  src/java/DAO/DaoBebida.java
+  src/java/DAO/DaoLanche.java
+  src/java/DAO/DaoIngrediente.java
+  src/java/DAO/DaoFuncionario.java
+  src/java/DAO/DaoEndereco.java
+  src/java/DAO/DaoPedido.java
+  src/java/Helpers/EncryptadorMD5.java
+  src/java/Controllers/login.java
+  src/java/Helpers/ValidadorCookie.java
+  banco.sql
+  docker-compose.yml
+
+MANUTENIBILIDADE:
+  src/java/Controllers/*.java (todos)
+  src/java/DAO/*.java (todos)
+  src/test/java/Controllers/*.java (todos)
+  src/test/java/selenium/tests/*.java (todos)
+  pom.xml
+
+PORTABILIDADE:
+  docker-compose.yml
+  Dockerfile
+  src/java/DAO/DaoUtil.java
+  pom.xml
+  banco.sql
+
+
+================================================================================
+FIM DO RELATÓRIO
+================================================================================
