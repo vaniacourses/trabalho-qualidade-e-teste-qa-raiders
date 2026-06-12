@@ -1,5 +1,6 @@
 package selenium.TestSelenium;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -59,14 +60,15 @@ public class CadastroSeleniumTest {
         cadastroPage.aceitarAlertaCadastro();
     }
 
-    @Test public void testCadastroComDadosInvalidos(){
+    @Test
+    public void testCadastroComDadosInvalidos() {
         driver.get("http://localhost:8080");
         HomePage homePage = new HomePage(driver);
         CarrinhoPage carrinhoPage = homePage.abrirCardapioECapturarAlerta().irParaCarrinho();
         CadastroPage cadastroPage = carrinhoPage.irParaCadastro();
 
         CadastroData dadosCadastro = new CadastroData(
-            "", // Nome vazio
+            "",
             "Bogado",
             "11999999999",
             "lucasbogado_",
@@ -79,5 +81,13 @@ public class CadastroSeleniumTest {
             "RJ"
         );
 
+        cadastroPage.preencherFormulario(dadosCadastro).submeter();
+
+        assertTrue(cadastroPage.alertaCadastroVisivel(),
+            "Submeter formulario com nome vazio deve exibir alerta de validacao");
+        String textoAlerta = cadastroPage.obterTextoAlerta();
+        assertFalse(textoAlerta.toLowerCase().contains("sucesso"),
+            "Alerta nao deve indicar cadastro bem-sucedido com nome vazio, foi: " + textoAlerta);
+        cadastroPage.aceitarAlertaCadastro();
     }
 }

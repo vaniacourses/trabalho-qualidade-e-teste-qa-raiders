@@ -1,18 +1,12 @@
 package selenium.TestSelenium;
+
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.Alert;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
-import org.openqa.selenium.support.ui.WebDriverWait;
-import java.time.Duration;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.checkerframework.checker.units.qual.s;
 
 public class LoginSeleniumTest {
     private WebDriver driver;
@@ -23,10 +17,16 @@ public class LoginSeleniumTest {
         driver = new ChromeDriver();
         driver.manage().window().maximize();
     }
+
     @AfterEach
     public void tearDown() {
         if (driver != null) {
             driver.quit();
         }
+    }
+
+    @Test
+    @Disabled("Teste pendente de implementacao")
+    public void testLoginComCredenciaisValidas() {
     }
 }

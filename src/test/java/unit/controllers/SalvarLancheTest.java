@@ -1,5 +1,7 @@
-package Controllers;
+package unit.controllers;
 
+
+import Controllers.salvarLanche;
 import DAO.DaoIngrediente;
 import DAO.DaoLanche;
 import Helpers.ValidadorCookie;
@@ -52,7 +54,7 @@ public class SalvarLancheTest {
                             return retorno;
                         }))) {
 
-            new salvarLanche().doPost(request, response);
+            new salvarLanche().service(request, response);
 
             DaoLanche daoLanche = lancheDaoMocked.constructed().get(0);
             ArgumentCaptor<Lanche> lancheCaptor = ArgumentCaptor.forClass(Lanche.class);
@@ -84,7 +86,7 @@ public class SalvarLancheTest {
                 MockedConstruction<DaoLanche> lancheDaoMocked = mockConstruction(DaoLanche.class);
                 MockedConstruction<DaoIngrediente> ingredienteDaoMocked = mockConstruction(DaoIngrediente.class)) {
 
-            new salvarLanche().doPost(request, response);
+            new salvarLanche().service(request, response);
 
             assertEquals(1, validadorMocked.constructed().size());
             assertEquals(0, lancheDaoMocked.constructed().size());
@@ -105,7 +107,7 @@ public class SalvarLancheTest {
         try (MockedConstruction<ValidadorCookie> validadorMocked = mockConstruction(ValidadorCookie.class,
                 (mock, context) -> when(mock.validarFuncionario(any())).thenThrow(new NullPointerException()));
                 MockedConstruction<DaoLanche> lancheDaoMocked = mockConstruction(DaoLanche.class)) {
-            new salvarLanche().doPost(request, response);
+            new salvarLanche().service(request, response);
             assertEquals(1, validadorMocked.constructed().size());
             assertEquals(0, lancheDaoMocked.constructed().size());
         }
@@ -122,7 +124,7 @@ public class SalvarLancheTest {
 
         try (MockedConstruction<ValidadorCookie> validadorMocked = mockConstruction(ValidadorCookie.class,
                 (mock, context) -> when(mock.validarFuncionario(any(Cookie[].class))).thenReturn(false))) {
-            new salvarLanche().doPost(request, response);
+            new salvarLanche().service(request, response);
             assertEquals(1, validadorMocked.constructed().size());
         }
 
@@ -138,7 +140,7 @@ public class SalvarLancheTest {
 
         try (MockedConstruction<ValidadorCookie> validadorMocked = mockConstruction(ValidadorCookie.class,
                 (mock, context) -> when(mock.validarFuncionario(any(Cookie[].class))).thenReturn(true))) {
-            assertThrows(JSONException.class, () -> new salvarLanche().doPost(request, response));
+            assertThrows(JSONException.class, () -> new salvarLanche().service(request, response));
             assertEquals(1, validadorMocked.constructed().size());
         }
     }
@@ -159,7 +161,7 @@ public class SalvarLancheTest {
                         (mock, context) -> when(mock.pesquisaPorNome(any(Ingrediente.class)))
                                 .thenReturn(ingredienteComId(1)))) {
 
-            new salvarLanche().doGet(request, response);
+            new salvarLanche().service(request, response);
 
             assertEquals(1, validadorMocked.constructed().size());
             assertEquals(1, lancheDaoMocked.constructed().size());
@@ -170,8 +172,7 @@ public class SalvarLancheTest {
     }
 
      @Test
-    public void deveSalvarLancheSemVincularIngredientesQuandoListaVazia() throws Exception {
-        // JSON válido mas sem nenhum ingrediente na lista
+    public void deveSalvarLancheSemVincularIngredientesQuandoListaVazia() throws Exception { 
         String jsonSemIngredientes = "{\"nome\":\"X-Burger\",\"descricao\":\"Lanche com queijo\",\"ValorVenda\":22.5,\"ingredientes\":{}}";
         HttpServletRequest request = mockRequestWithBody(jsonSemIngredientes);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -185,14 +186,12 @@ public class SalvarLancheTest {
                         (mock, context) -> when(mock.pesquisaPorNome(any(Lanche.class))).thenReturn(lancheComId()));
                 MockedConstruction<DaoIngrediente> ingredienteDaoMocked = mockConstruction(DaoIngrediente.class)) {
  
-            new salvarLanche().doPost(request, response);
+            new salvarLanche().service(request, response);
  
             DaoLanche daoLanche = lancheDaoMocked.constructed().get(0);
- 
-            // Lanche deve ter sido salvo normalmente
+  
             verify(daoLanche).salvar(any(Lanche.class));
- 
-            // Mas nenhum ingrediente deve ter sido vinculado
+  
             verify(daoLanche, times(0)).vincularIngrediente(any(Lanche.class), any(Ingrediente.class));
         }
  
@@ -201,8 +200,7 @@ public class SalvarLancheTest {
     }
  
     @Test
-    public void deveLancarExcecaoQuandoJsonNaoContemCampoNome() throws Exception {
-        // JSON sem o campo obrigatório "nome"
+    public void deveLancarExcecaoQuandoJsonNaoContemCampoNome() throws Exception { 
         String jsonSemNome = "{\"descricao\":\"Lanche com queijo\",\"ValorVenda\":22.5,\"ingredientes\":{\"queijo\":2}}";
         HttpServletRequest request = mockRequestWithBody(jsonSemNome);
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -211,8 +209,8 @@ public class SalvarLancheTest {
         try (MockedConstruction<ValidadorCookie> validadorMocked = mockConstruction(ValidadorCookie.class,
                 (mock, context) -> when(mock.validarFuncionario(any(Cookie[].class))).thenReturn(true))) {
  
-            assertThrows(JSONException.class, () -> new salvarLanche().doPost(request, response),
-                "CT18: JSON sem campo 'nome' deve lançar JSONException.");
+            assertThrows(JSONException.class, () -> new salvarLanche().service(request, response),
+                "CT18: JSON sem campo 'nome' deve lanÃ§ar JSONException.");
         }
     }
  
@@ -238,12 +236,12 @@ public class SalvarLancheTest {
             }
 
             @Override
-            public void setReadListener(ReadListener readListener) {
-                // Não utilizado em testes síncronos.
+            public void setReadListener(ReadListener readListener) { 
             }
         };
 
         when(request.getInputStream()).thenReturn(servletInputStream);
+        when(request.getMethod()).thenReturn("POST");
         return request;
     }
 
@@ -264,3 +262,4 @@ public class SalvarLancheTest {
         return ingrediente;
     }
 }
+

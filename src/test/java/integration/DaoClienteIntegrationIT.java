@@ -50,15 +50,13 @@ public class DaoClienteIntegrationIT {
             String expectedHash = md5.encryptar(cliente.getSenha());
             assertEquals(expectedHash, resultado.getSenha(), "senha armazenada deve ser o hash MD5");
 
-        } finally {
-            // cleanup: remove o cliente criado
+        } finally { 
             try (Connection conn = new DaoUtil().conecta()){
                 PreparedStatement ps = conn.prepareStatement("DELETE FROM tb_clientes WHERE usuario = ?");
                 ps.setString(1, usuario);
                 ps.executeUpdate();
                 ps.close();
-            } catch(Exception ex){
-                // não falhar o teste por causa do cleanup
+            } catch(Exception ex){ 
             }
         }
     }

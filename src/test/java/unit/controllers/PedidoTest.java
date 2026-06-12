@@ -1,4 +1,4 @@
-package Controllers;
+package unit.controllers;
 
 import Model.Cliente;
 import Model.Pedido;
@@ -14,19 +14,19 @@ public class PedidoTest {
         
         pedido.setValor_total(valorEsperado);
         
-        assertEquals(valorEsperado, pedido.getValor_total(), "O valor total recuperado deve ser igual ao atribuído.");
+        assertEquals(valorEsperado, pedido.getValor_total(), "O valor total recuperado deve ser igual ao atribuÃ­do.");
     }
 
     @Test
     public void deveVincularUmClienteAoPedido() {
         Pedido pedido = new Pedido();
         Cliente cliente = new Cliente();
-        cliente.setNome("João Silva");
+        cliente.setNome("JoÃ£o Silva");
         
         pedido.setCliente(cliente);
         
-        assertNotNull(pedido.getCliente(), "O objeto Cliente não deve ser nulo.");
-        assertEquals("João Silva", pedido.getCliente().getNome(), "O nome do cliente no pedido deve ser João Silva.");
+        assertNotNull(pedido.getCliente(), "O objeto Cliente nÃ£o deve ser nulo.");
+        assertEquals("JoÃ£o Silva", pedido.getCliente().getNome(), "O nome do cliente no pedido deve ser JoÃ£o Silva.");
     }
 
     @Test

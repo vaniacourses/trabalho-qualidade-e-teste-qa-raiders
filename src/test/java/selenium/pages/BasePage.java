@@ -3,10 +3,12 @@ package selenium.pages;
 import java.time.Duration;
 import org.openqa.selenium.Alert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public abstract class BasePage {
@@ -47,6 +49,58 @@ public abstract class BasePage {
     protected boolean isAlertPresent() {
         try {
             waitForAlert();
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    protected String getText(By locator) {
+        return waitForVisible(locator).getText();
+    }
+
+    protected void waitForTextPresent(By locator, String text) {
+        wait.until(ExpectedConditions.textToBePresentInElementLocated(locator, text));
+    }
+
+    protected void selectByValue(By locator, String value) {
+        new Select(waitForVisible(locator)).selectByValue(value);
+    }
+
+    protected void selectByVisibleText(By locator, String text) {
+        new Select(waitForVisible(locator)).selectByVisibleText(text);
+    }
+
+    protected String getAlertText() {
+        return waitForAlert().getText();
+    }
+
+    protected boolean isAlertPresentQuick() {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(2))
+                .until(ExpectedConditions.alertIsPresent());
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    protected void waitForPageReady() {
+        wait.until(driver ->
+            ((JavascriptExecutor) driver)
+                .executeScript("return document.readyState")
+                .equals("complete")
+        );
+    }
+
+    protected void waitForUrlContains(String partial) {
+        wait.until(ExpectedConditions.urlContains(partial));
+    }
+
+    protected boolean isElementPresent(By locator) {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(3))
+                .until(ExpectedConditions.presenceOfElementLocated(locator));
             return true;
         } catch (TimeoutException e) {
             return false;

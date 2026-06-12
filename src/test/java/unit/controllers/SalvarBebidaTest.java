@@ -1,8 +1,12 @@
-package Controllers;
+package unit.controllers;
 
+
+import Controllers.salvarBebida;
 import DAO.DaoBebida;
 import Model.Bebida;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -33,7 +37,7 @@ public class SalvarBebidaTest {
         when(response.getWriter()).thenReturn(new PrintWriter(saida));
 
         try (MockedConstruction<DaoBebida> daoMocked = mockConstruction(DaoBebida.class)) {
-            new salvarBebida().doPost(request, response);
+            new salvarBebida().service(request, response);
 
             DaoBebida dao = daoMocked.constructed().get(0);
             ArgumentCaptor<Bebida> captor = ArgumentCaptor.forClass(Bebida.class);
@@ -60,7 +64,7 @@ public class SalvarBebidaTest {
         when(response.getWriter()).thenReturn(new PrintWriter(saida));
 
         try (MockedConstruction<DaoBebida> daoMocked = mockConstruction(DaoBebida.class)) {
-            new salvarBebida().doGet(request, response);
+            new salvarBebida().service(request, response);
             assertEquals(1, daoMocked.constructed().size());
         }
 
@@ -74,7 +78,7 @@ public class SalvarBebidaTest {
         when(response.getWriter()).thenReturn(new PrintWriter(new StringWriter()));
 
         try (MockedConstruction<DaoBebida> daoMocked = mockConstruction(DaoBebida.class)) {
-            new salvarBebida().doPost(request, response);
+            new salvarBebida().service(request, response);
             assertEquals(1, daoMocked.constructed().size());
         }
 
@@ -87,7 +91,7 @@ public class SalvarBebidaTest {
         HttpServletRequest request = mockRequestWithBody("nao-e-json");
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        assertThrows(JSONException.class, () -> new salvarBebida().doPost(request, response));
+        assertThrows(JSONException.class, () -> new salvarBebida().service(request, response));
     }
 
     @Test
@@ -96,7 +100,7 @@ public class SalvarBebidaTest {
         HttpServletRequest request = mockRequestWithBody(jsonSemTipo);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        assertThrows(JSONException.class, () -> new salvarBebida().doPost(request, response));
+        assertThrows(JSONException.class, () -> new salvarBebida().service(request, response));
     }
 
     @Test
@@ -105,7 +109,7 @@ public class SalvarBebidaTest {
         HttpServletRequest request = mockRequestWithBody(jsonComValorCompraInvalido);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        assertThrows(NumberFormatException.class, () -> new salvarBebida().doPost(request, response));
+        assertThrows(NumberFormatException.class, () -> new salvarBebida().service(request, response));
     }
 
     private HttpServletRequest mockRequestWithBody(String body) throws IOException {
@@ -129,16 +133,24 @@ public class SalvarBebidaTest {
             }
 
             @Override
-            public void setReadListener(ReadListener readListener) {
-                // Não utilizado nos cenários de teste síncronos.
+            public void setReadListener(ReadListener readListener) { 
             }
         };
 
         when(request.getInputStream()).thenReturn(servletInputStream);
+        when(request.getMethod()).thenReturn("POST");
         return request;
+    }
+
+    @Test
+    public void getServletInfo_retornaDescricao() {
+        String info = new salvarBebida().getServletInfo();
+        assertNotNull(info, "getServletInfo nÃ£o deve retornar null");
+        assertFalse(info.isEmpty(), "getServletInfo deve retornar String nÃ£o-vazia");
     }
 
     private String jsonValido() {
         return "{\"nome\":\"Coca Cola\",\"descricao\":\"Refrigerante\",\"quantidade\":15,\"ValorCompra\":\"4.25\",\"ValorVenda\":\"7.50\",\"tipo\":\"refrigerante\"}";
     }
 }
+

@@ -54,4 +54,8 @@ public class CadastroPage extends BasePage {
     public void aceitarAlertaCadastro() {
         acceptAlert();
     }
+
+    public String obterTextoAlerta() {
+        return getAlertText();
+    }
 }

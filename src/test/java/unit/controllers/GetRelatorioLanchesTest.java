@@ -1,4 +1,7 @@
-package Controllers;
+package unit.controllers;
+
+
+import Controllers.getRelatorioLanches;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
 import org.mockito.MockedConstruction;
@@ -33,6 +36,7 @@ public class GetRelatorioLanchesTest {
         when(cookie.getName()).thenReturn("tokenFuncionario");
         when(cookie.getValue()).thenReturn("validToken");
         when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        when(request.getMethod()).thenReturn("GET");
 
         List<RelatorioLanches> sampleData = createSampleData();
 
@@ -42,7 +46,7 @@ public class GetRelatorioLanchesTest {
             try (MockedConstruction<DaoRelatorio> mockedDao = mockConstruction(DaoRelatorio.class, (mock, context) -> {
                 when(mock.listarRelLanches()).thenReturn(sampleData);
             })) {
-                servlet.doGet(request, response);
+                servlet.service(request, response);
 
                 pw.flush();
                 String output = sw.toString();
@@ -67,6 +71,7 @@ public class GetRelatorioLanchesTest {
         when(cookie.getName()).thenReturn("tokenFuncionario");
         when(cookie.getValue()).thenReturn("validToken");
         when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        when(request.getMethod()).thenReturn("GET");
 
         List<RelatorioLanches> sampleData = createSampleData();
 
@@ -76,7 +81,7 @@ public class GetRelatorioLanchesTest {
             try (MockedConstruction<DaoRelatorio> mockedDao = mockConstruction(DaoRelatorio.class, (mock, context) -> {
                 when(mock.listarRelLanches()).thenReturn(sampleData);
             })) {
-                servlet.doPost(request, response);
+                servlet.service(request, response);
 
                 pw.flush();
                 String output = sw.toString();
@@ -101,11 +106,12 @@ public class GetRelatorioLanchesTest {
         when(cookie.getName()).thenReturn("tokenFuncionario");
         when(cookie.getValue()).thenReturn("invalidToken");
         when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        when(request.getMethod()).thenReturn("GET");
 
         try (MockedConstruction<ValidadorCookie> mockedValidar = mockConstruction(ValidadorCookie.class, (mock, context) -> {
             when(mock.validarFuncionario(any())).thenReturn(false);
         })) {
-            servlet.doGet(request, response);
+            servlet.service(request, response);
 
             pw.flush();
             String output = sw.toString();
@@ -122,11 +128,12 @@ public class GetRelatorioLanchesTest {
         when(response.getWriter()).thenReturn(pw);
 
         when(request.getCookies()).thenReturn(null);
+        when(request.getMethod()).thenReturn("GET");
 
         try (MockedConstruction<ValidadorCookie> mockedValidar = mockConstruction(ValidadorCookie.class, (mock, context) -> {
             doThrow(new NullPointerException()).when(mock).validarFuncionario((Cookie[]) isNull());
         })) {
-            servlet.doGet(request, response);
+            servlet.service(request, response);
 
             pw.flush();
             String output = sw.toString();
@@ -146,6 +153,7 @@ public class GetRelatorioLanchesTest {
         when(cookie.getName()).thenReturn("tokenFuncionario");
         when(cookie.getValue()).thenReturn("validToken");
         when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        when(request.getMethod()).thenReturn("GET");
 
         List<RelatorioLanches> emptyData = new ArrayList<>();
 
@@ -155,7 +163,7 @@ public class GetRelatorioLanchesTest {
             try (MockedConstruction<DaoRelatorio> mockedDao = mockConstruction(DaoRelatorio.class, (mock, context) -> {
                 when(mock.listarRelLanches()).thenReturn(emptyData);
             })) {
-                servlet.doGet(request, response);
+                servlet.service(request, response);
 
                 pw.flush();
                 String output = sw.toString();
@@ -178,6 +186,7 @@ public class GetRelatorioLanchesTest {
         when(cookie.getName()).thenReturn("tokenFuncionario");
         when(cookie.getValue()).thenReturn("validToken");
         when(request.getCookies()).thenReturn(new Cookie[]{cookie});
+        when(request.getMethod()).thenReturn("GET");
 
         List<RelatorioLanches> sampleData = createSampleData();
 
@@ -187,7 +196,7 @@ public class GetRelatorioLanchesTest {
             try (MockedConstruction<DaoRelatorio> mockedDao = mockConstruction(DaoRelatorio.class, (mock, context) -> {
                 when(mock.listarRelLanches()).thenReturn(sampleData);
             })) {
-                servlet.doGet(request, response);
+                servlet.service(request, response);
 
                 verify(response).setContentType("application/json");
                 verify(response).setCharacterEncoding("UTF-8");
@@ -214,3 +223,4 @@ public class GetRelatorioLanchesTest {
         return list;
     }
 }
+

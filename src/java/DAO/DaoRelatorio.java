@@ -61,12 +61,7 @@ public class DaoRelatorio {
                 "INNER JOIN tb_ingredientes i ON(il.id_ingrediente = i.id_ingrediente)\n" +
                 "GROUP BY l.nm_lanche, i.nm_ingrediente, il.quantidade, i.valor_venda, i.valor_compra, l.valor_venda\n"+
                 "ORDER BY l.nm_lanche;";
-        /*String sql = "select nm_lanche, nm_lanche as nm_ingrediente, nm_lanche as quantidade,"
-                + "nm_lanche as custo_ingrediente, nm_lanche as venda_ingrediente, nm_lanche as lucro_ingrediente,"
-                + "nm_lanche as valor_venda, nm_lanche as custo_total_ingredientes, "
-                + "nm_lanche as venda_total_ingredientes, nm_lanches as lucro_total_ingredientes, "
-                + "nm_lanche as lucro_operacional, nm_lanche as lucro_total "
-                + "from tb_lanches;";*/
+                
         ResultSet rs;
         List<RelatorioLanches> relatorio = new ArrayList<RelatorioLanches>();
         try{
@@ -189,7 +184,7 @@ public class DaoRelatorio {
                 RelatorioGastos rg = new RelatorioGastos();
                 rg.setCusto(rs.getFloat("custo"));
                 rg.setVenda(rs.getFloat("vendas"));
-                rg.setLucro(rs.getFloat("custo"));
+                rg.setLucro(rs.getFloat("lucro"));
                 relatorio.add(rg);
             }
             rs.close();

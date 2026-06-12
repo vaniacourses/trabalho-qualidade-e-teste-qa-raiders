@@ -1,11 +1,15 @@
-package Controllers;
+package unit.controllers;
 
+
+import Controllers.comprar;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+
+import org.mockito.ArgumentCaptor;
 
 import DAO.DaoBebida;
 import DAO.DaoCliente;
@@ -36,6 +40,7 @@ public class ComprarTest {
         response = mock(HttpServletResponse.class);
         sw = new StringWriter();
         when(response.getWriter()).thenReturn(new PrintWriter(sw));
+        when(request.getMethod()).thenReturn("POST");
     }
 
     private void mockInputStream(String json) throws Exception {
@@ -60,10 +65,10 @@ public class ComprarTest {
         try (MockedConstruction<ValidadorCookie> mocked = mockConstruction(ValidadorCookie.class, 
             (mock, context) -> when(mock.validar(any())).thenReturn(false))) {
             
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
         }
 
-        assertTrue(sw.toString().contains("erro"), "Esperado 'erro' quando não há cookies.");
+        assertTrue(sw.toString().contains("erro"), "Esperado 'erro' quando nÃ£o hÃ¡ cookies.");
     }
 
     @Test
@@ -74,10 +79,10 @@ public class ComprarTest {
         try (MockedConstruction<ValidadorCookie> mocked = mockConstruction(ValidadorCookie.class, 
             (mock, context) -> when(mock.validar(any())).thenReturn(false))) {
 
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
         }
 
-        assertTrue(sw.toString().contains("erro"), "Esperado 'erro' quando cookie é inválido.");
+        assertTrue(sw.toString().contains("erro"), "Esperado 'erro' quando cookie Ã© invÃ¡lido.");
     }
 
     
@@ -98,10 +103,20 @@ public class ComprarTest {
             MockedConstruction<DaoLanche> dl = mockConstruction(DaoLanche.class, (m, c) -> when(m.pesquisaPorNome(anyString())).thenReturn(lancheMock));
             MockedConstruction<DaoPedido> dp = mockConstruction(DaoPedido.class, (m, c) -> when(m.pesquisaPorData(any(Pedido.class))).thenReturn(pedidoMock))
         ) {
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
 
             DaoPedido daoPedidoMock = dp.constructed().get(0);
             verify(daoPedidoMock, times(1)).vincularLanche(eq(pedidoMock), eq(lancheMock));
+
+            verify(response).setContentType("application/json");
+            verify(response).setCharacterEncoding("UTF-8");
+            assertEquals(2, lancheMock.getQuantidade(), "Quantidade do lanche deve ser populada do JSON");
+            assertEquals(clienteMock, pedidoMock.getCliente(), "Cliente deve ser atribuÃ­do ao pedido apÃ³s pesquisaPorData");
+            ArgumentCaptor<Pedido> pedidoCaptor = ArgumentCaptor.forClass(Pedido.class);
+            verify(daoPedidoMock).salvar(pedidoCaptor.capture());
+            Pedido savedPedido = pedidoCaptor.getValue();
+            assertNotNull(savedPedido.getData_pedido(), "data_pedido deve ser setada antes de salvar");
+            assertEquals(clienteMock, savedPedido.getCliente(), "Cliente deve ser setado no pedido antes de salvar");
         }
 
         assertTrue(sw.toString().contains("Pedido Salvo com Sucesso!"));
@@ -122,7 +137,13 @@ public class ComprarTest {
             MockedConstruction<DaoBebida> db = mockConstruction(DaoBebida.class, (m, c) -> when(m.pesquisaPorNome(anyString())).thenReturn(bebidaMock));
             MockedConstruction<DaoPedido> dp = mockConstruction(DaoPedido.class, (m, c) -> when(m.pesquisaPorData(any(Pedido.class))).thenReturn(pedidoMock))
         ) {
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
+
+            DaoPedido daoPedidoMock = dp.constructed().get(0);
+ 
+            verify(daoPedidoMock, times(1)).vincularBebida(eq(pedidoMock), eq(bebidaMock));
+            assertEquals(1, bebidaMock.getQuantidade(), "Quantidade da bebida deve ser populada do JSON");
+            assertEquals(clienteMock, pedidoMock.getCliente(), "Cliente deve ser atribuÃ­do ao pedido apÃ³s pesquisaPorData");
         }
 
         assertTrue(sw.toString().contains("Pedido Salvo com Sucesso!"));
@@ -146,7 +167,7 @@ public class ComprarTest {
             MockedConstruction<DaoBebida> db = mockConstruction(DaoBebida.class, (m, c) -> when(m.pesquisaPorNome(anyString())).thenReturn(bebidaMock));
             MockedConstruction<DaoPedido> dp = mockConstruction(DaoPedido.class, (m, c) -> when(m.pesquisaPorData(any(Pedido.class))).thenReturn(pedidoMock))
         ) {
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
 
             DaoPedido daoPedido = dp.constructed().get(0);
             verify(daoPedido).salvar(argThat(p -> Double.valueOf(28.00).equals(p.getValor_total())));
@@ -168,7 +189,7 @@ public class ComprarTest {
             MockedConstruction<DaoCliente> dc = mockConstruction(DaoCliente.class, (m, c) -> when(m.pesquisaPorID(anyString())).thenReturn(clienteMock));
             MockedConstruction<DaoPedido> dp = mockConstruction(DaoPedido.class, (m, c) -> when(m.pesquisaPorData(any(Pedido.class))).thenReturn(pedidoMock))
         ) {
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
 
             DaoPedido daoPedido = dp.constructed().get(0);
             verify(daoPedido, never()).vincularLanche(any(), any());
@@ -176,7 +197,7 @@ public class ComprarTest {
             verify(daoPedido).salvar(argThat(p -> Double.valueOf(0.00).equals(p.getValor_total())));
         }
 
-        assertTrue(sw.toString().contains("Pedido Salvo com Sucesso!"), "Atenção: O sistema está permitindo salvar pedidos vazios.");
+        assertTrue(sw.toString().contains("Pedido Salvo com Sucesso!"), "AtenÃ§Ã£o: O sistema estÃ¡ permitindo salvar pedidos vazios.");
     }
 
     @Test
@@ -186,7 +207,7 @@ public class ComprarTest {
 
         try (MockedConstruction<ValidadorCookie> vc = mockConstruction(ValidadorCookie.class, (m, c) -> when(m.validar(any())).thenReturn(true))) {
             assertThrows(Exception.class, () -> {
-                new comprar().doPost(request, response);
+                new comprar().service(request, response);
             });
         }
     }
@@ -198,7 +219,7 @@ public class ComprarTest {
 
         try (MockedConstruction<ValidadorCookie> vc = mockConstruction(ValidadorCookie.class, (m, c) -> when(m.validar(any())).thenReturn(true))) {
             assertThrows(NullPointerException.class, () -> {
-                new comprar().doPost(request, response);
+                new comprar().service(request, response);
             });
         }
     }
@@ -220,18 +241,18 @@ public class ComprarTest {
         ) {
             
             assertThrows(NullPointerException.class, () -> {
-                new comprar().doPost(request, response);
+                new comprar().service(request, response);
             });
         }
     }
 
     @Test
     public void itemComCategoriaDesconhecidaIgnorado() throws Exception {
-        
+
         mockInputStream("{\"id\":1, \"Pudim\":[\"Pudim\",\"sobremesa\",1]}");
         when(request.getCookies()).thenReturn(cookieValido());
 
-        Cliente clienteMock = new Cliente(); 
+        Cliente clienteMock = new Cliente();
         clienteMock.setId_cliente(1);
         Pedido pedidoMock = new Pedido();
 
@@ -240,14 +261,35 @@ public class ComprarTest {
             MockedConstruction<DaoCliente> dc = mockConstruction(DaoCliente.class, (m, c) -> when(m.pesquisaPorID(anyString())).thenReturn(clienteMock));
             MockedConstruction<DaoPedido> dp = mockConstruction(DaoPedido.class, (m, c) -> when(m.pesquisaPorData(any(Pedido.class))).thenReturn(pedidoMock))
         ) {
-            new comprar().doPost(request, response);
+            new comprar().service(request, response);
 
-            
+
             DaoPedido daoPedido = dp.constructed().get(0);
             verify(daoPedido).salvar(argThat(p -> Double.valueOf(0.00).equals(p.getValor_total())));
         }
-        
-        
+
+
         assertTrue(sw.toString().contains("Pedido Salvo com Sucesso!"));
+    }
+
+    @Test
+    public void doGet_redirecionaParaProcessRequest() throws Exception {
+        mockInputStream("{}");
+        when(request.getCookies()).thenReturn(null);
+        when(request.getMethod()).thenReturn("GET");
+
+        try (MockedConstruction<ValidadorCookie> vc = mockConstruction(ValidadorCookie.class,
+                (m, c) -> when(m.validar(any())).thenReturn(false))) {
+            new comprar().service(request, response);
+        }
+
+        assertTrue(sw.toString().contains("erro"), "doGet deve delegar para processRequest");
+    }
+
+    @Test
+    public void getServletInfo_retornaDescricao() {
+        String info = new comprar().getServletInfo();
+        assertNotNull(info, "getServletInfo nÃ£o deve retornar null");
+        assertFalse(info.isEmpty(), "getServletInfo deve retornar String nÃ£o-vazia");
     }
 }

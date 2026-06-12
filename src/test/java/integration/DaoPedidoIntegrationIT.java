@@ -81,7 +81,6 @@ public class DaoPedidoIntegrationIT {
                 psEndereco.executeUpdate();
                 psEndereco.close();
             } catch (Exception ex) {
-                // cleanup não deve quebrar o teste
             }
         }
     }
