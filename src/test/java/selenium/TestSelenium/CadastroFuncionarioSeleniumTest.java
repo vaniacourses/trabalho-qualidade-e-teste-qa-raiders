@@ -33,20 +33,22 @@ public class CadastroFuncionarioSeleniumTest {
         return LoginFuncionarioPage.abrir(driver).loginEAguardarPainel("admin", "admin");
     }
 
+    private String usuario(String prefixo) {
+        return prefixo + (System.currentTimeMillis() % 1000000L);
+    }
+
     @Test
     public void testCadastrarFuncionarioComDadosValidos() {
         PainelPage painel = loginAdmin();
 
-        String usuario = "func" + System.currentTimeMillis();
-
         painel.mostrarFormFuncionario()
               .preencherFuncionario(
-                  "Carlos",       
-                  "Pereira",      
-                  usuario,      
-                  "senha123",     
-                  "Atendente",     
-                  "1500.00"        
+                  "Carlos",
+                  "Pereira",
+                  usuario("carlos"),   
+                  "senha123",
+                  "Atendente",
+                  "1500.00"
               )
               .salvarFuncionario();
 
@@ -59,17 +61,16 @@ public class CadastroFuncionarioSeleniumTest {
 
         painel.aceitarAlertaEAguardarRecarga();
     }
- 
+
     @Test
     public void testCadastrarDoisFuncionariosDistintosAmbosAceitos() {
         PainelPage painel = loginAdmin();
-        long ts = System.currentTimeMillis();
- 
+
         painel.mostrarFormFuncionario()
               .preencherFuncionario(
                   "Ana",
                   "Rodrigues",
-                  "anarod" + ts,
+                  usuario("ana"),      
                   "senhaAna",
                   "Cozinheira",
                   "2000.00"
@@ -81,14 +82,13 @@ public class CadastroFuncionarioSeleniumTest {
         String textoAlerta1 = painel.obterTextoAlerta();
         assertTrue(textoAlerta1.contains("Funcionario Cadastrado") || textoAlerta1.contains("Cadastrado"),
             "Alerta do primeiro cadastro deve confirmar sucesso, foi: " + textoAlerta1);
-
         painel.aceitarAlertaEAguardarRecarga();
- 
+
         painel.mostrarFormFuncionario()
               .preencherFuncionario(
                   "Bruno",
                   "Alves",
-                  "brunoalv" + (ts + 1),
+                  usuario("bruno"),    
                   "senhaBruno",
                   "Gerente",
                   "3500.00"
@@ -100,30 +100,21 @@ public class CadastroFuncionarioSeleniumTest {
         String textoAlerta2 = painel.obterTextoAlerta();
         assertTrue(textoAlerta2.contains("Funcionario Cadastrado") || textoAlerta2.contains("Cadastrado"),
             "Alerta do segundo cadastro deve confirmar sucesso, foi: " + textoAlerta2);
-
         painel.aceitarAlertaEAguardarRecarga();
     }
- 
+
     @Test
     public void testCadastrarFuncionarioCamposVaziosExibeValidacao() {
         PainelPage painel = loginAdmin();
 
         painel.mostrarFormFuncionario()
-              .preencherFuncionario(
-                  "",    
-                  "",    
-                  "",    
-                  "",    
-                  "",    
-                  ""    
-              )
+              .preencherFuncionario("", "", "", "", "", "")
               .salvarFuncionario();
 
         assertTrue(painel.alertaPresente(),
             "Submeter formulário vazio deve exibir alerta de validação");
 
         String texto = painel.obterTextoAlerta();
-        
         assertTrue(!texto.contains("Funcionario Cadastrado"),
             "Alerta de campos vazios não deve indicar cadastro bem-sucedido, foi: " + texto);
 
