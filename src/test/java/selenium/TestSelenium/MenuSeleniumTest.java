@@ -39,14 +39,14 @@ public class MenuSeleniumTest {
     @Test
     public void testSecaoLanchesEstaPresente() {
         MenuPage menuPage = MenuPage.abrir(driver);
-        assertTrue(menuPage.screenLanchesVisivel(),
+        assertTrue(menuPage.screenLanchesPresente(),
             "O elemento #screen (seção de lanches) deve estar presente no DOM da página do menu");
     }
- 
+
     @Test
     public void testSecaoBebidasEstaPresente() {
         MenuPage menuPage = MenuPage.abrir(driver);
-        assertTrue(menuPage.screenBebidasVisivel(),
+        assertTrue(menuPage.screenBebidasPresente(),
             "O elemento #screenBebidas (seção de bebidas) deve estar presente no DOM da página do menu");
     }
  

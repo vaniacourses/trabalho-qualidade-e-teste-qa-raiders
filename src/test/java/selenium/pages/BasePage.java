@@ -106,4 +106,37 @@ public abstract class BasePage {
             return false;
         }
     }
+
+    protected boolean isVisible(By locator) {
+        try {
+            new WebDriverWait(driver, Duration.ofSeconds(5))
+                .until(ExpectedConditions.visibilityOfElementLocated(locator));
+            return true;
+        } catch (TimeoutException e) {
+            return false;
+        }
+    }
+
+    protected void dismissAlertIfPresent() {
+        try {
+            if (isAlertPresentQuick()) {
+                driver.switchTo().alert().accept();
+            }
+        } catch (Exception ignored) {
+            // sem alerta para tratar
+        }
+    }
+
+    protected int acceptAllAlerts() {
+        int count = 0;
+        while (isAlertPresentQuick()) {
+            try {
+                driver.switchTo().alert().accept();
+                count++;
+            } catch (Exception e) {
+                break;
+            }
+        }
+        return count;
+    }
 }

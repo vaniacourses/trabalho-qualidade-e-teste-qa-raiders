@@ -37,6 +37,16 @@ public class LoginPage extends BasePage {
         submeter();
     }
 
+    public boolean tituloCorreto() {
+        return driver.getTitle() != null && driver.getTitle().contains("Login");
+    }
+
+    public boolean camposLoginPresentes() {
+        return isElementPresent(inputUsuario)
+            && isElementPresent(inputSenha)
+            && isElementPresent(botaoEntrar);
+    }
+
     public boolean alertaPresente() {
         return isAlertPresent();
     }

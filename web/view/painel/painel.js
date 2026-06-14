@@ -185,16 +185,17 @@ function formularioParaObjeto(formulario){
 }
 
 function validar(formulario){
-    let sucesso = true;
-    Object.values(formulario).reduce(
-        (obj, field) => {
-            if (field.value.toString().trim() === "" || field.value.toString().trim() === "Tipo") {
-                alert("Você precisa preencher todos os campos para se Cadastrar! O Campo "+field.name+" Está Vazio!")
-                sucesso = false;
-                return;
-            }
-        }, {});
-        return sucesso;
+    let camposVazios = [];
+    Object.values(formulario).forEach((field) => {
+        if (field.value.toString().trim() === "" || field.value.toString().trim() === "Tipo") {
+            camposVazios.push(field.name);
+        }
+    });
+    if (camposVazios.length > 0) {
+        alert("Você precisa preencher todos os campos! Campos vazios: " + camposVazios.join(", "));
+        return false;
+    }
+    return true;
 }
 
 function getIngredientes(resposta){
@@ -298,8 +299,9 @@ function salvarLanche(){
         dados = dadosDoLanche();
         console.log(dados);
         sessionStorage.clear()
+        // resolver() já recarrega a página no sucesso; o reload aqui era prematuro
+        // (acontecia antes da resposta, descartando o alerta de confirmação).
         requisicao("../../salvarLanche", resolver, JSON.stringify(dados));
-        window.location.reload();
     }
 
 }
@@ -310,24 +312,16 @@ function validarLanche(){
     let descricao = document.getElementById("textArea3");
     let pao = document.getElementById("selectPao");
     let valor = document.getElementById("ValorLanche");
-    let resultado = true;
-    if(nome.value == ""){
-        alert("Campo Nome Vazio!")
-        resultado = false;
+    let camposVazios = [];
+    if(nome.value == "") camposVazios.push("Nome");
+    if(descricao.value == "") camposVazios.push("Descrição");
+    if(pao.selectedIndex == 0) camposVazios.push("Pão");
+    if(valor.value == 0) camposVazios.push("Valor");
+    if(camposVazios.length > 0){
+        alert("Campos obrigatórios vazios: " + camposVazios.join(", "));
+        return false;
     }
-    if(descricao.value == ""){
-        alert("Campo Descrição Vazio!")
-        resultado = false;
-    }
-    if(pao.selectedIndex == 0){
-        alert("Campo Pão Vazio!")
-        resultado = false;
-    }
-    if(valor.value == 0){
-        alert("Campo Valor Vazio!")
-        resultado = false;
-    }
-    return resultado;
+    return true;
 }
 
 function dadosDoLanche(){

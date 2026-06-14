@@ -231,16 +231,17 @@ function resolver(resposta){
 }
 
 function validar(formulario){
-    let sucesso = true;
-    Object.values(formulario).reduce(
-        (obj, field) => {
-            if (field.value.toString().trim() === "" || field.value.toString().trim() === "Tipo") {
-                alert("Você precisa preencher todos os campos para se Cadastrar! O Campo "+field.name+" Está Vazio!")
-                sucesso = false;
-                return;
-            }
-        }, {});
-        return sucesso;
+    let camposVazios = [];
+    Object.values(formulario).forEach((field) => {
+        if (field.value.toString().trim() === "" || field.value.toString().trim() === "Tipo") {
+            camposVazios.push(field.name);
+        }
+    });
+    if (camposVazios.length > 0) {
+        alert("Você precisa preencher todos os campos! Campos vazios: " + camposVazios.join(", "));
+        return false;
+    }
+    return true;
 }
 
 function formularioParaObjeto(formulario){

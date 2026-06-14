@@ -19,7 +19,9 @@ public class MenuPage extends BasePage {
 
     public static MenuPage abrir(WebDriver driver) {
         driver.get(URL);
-        return new MenuPage(driver);
+        MenuPage page = new MenuPage(driver);
+        page.dismissAlertIfPresent();
+        return page;
     }
 
     public LoginPage irParaLogin() {
@@ -41,11 +43,19 @@ public class MenuPage extends BasePage {
         return driver.getTitle().contains("Card");
     }
 
-    public boolean screenLanchesVisivel() {
+    public boolean screenLanchesPresente() {
         return isElementPresent(screenLanches);
     }
 
-    public boolean screenBebidasVisivel() {
+    public boolean screenBebidasPresente() {
         return isElementPresent(screenBebidas);
+    }
+
+    public boolean screenLanchesVisivel() {
+        return isVisible(screenLanches);
+    }
+
+    public boolean screenBebidasVisivel() {
+        return isVisible(screenBebidas);
     }
 }

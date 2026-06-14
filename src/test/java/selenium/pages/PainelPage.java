@@ -2,6 +2,7 @@ package selenium.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.Select;
 
 public class PainelPage extends BasePage {
 
@@ -159,13 +160,8 @@ public class PainelPage extends BasePage {
 
     public PainelPage preencherLanche(String nome, String nomePao, String valor, String descricao) {
         type(inputLancheNome, nome);
-        type(inputLancheValor, valor); 
-        
-        wait.until(d -> {
-            org.openqa.selenium.support.ui.Select s =
-                new org.openqa.selenium.support.ui.Select(d.findElement(selectLanchePao));
-            return s.getOptions().size() > 1;
-        });
+        type(inputLancheValor, valor);
+        wait.until(d -> new Select(d.findElement(selectLanchePao)).getOptions().size() > 1);
         selectByVisibleText(selectLanchePao, nomePao);
         type(inputLancheDescricao, descricao);
         return this;
@@ -174,6 +170,20 @@ public class PainelPage extends BasePage {
     public PainelPage salvarLanche() {
         click(botaoSalvarLanche);
         return this;
+    }
+
+    /** Indica se o select de pães foi populado (ao menos uma opção além do placeholder). */
+    public boolean paoDisponivel() {
+        try {
+            wait.until(d -> new Select(d.findElement(selectLanchePao)).getOptions().size() > 1);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public int aceitarTodosAlertas() {
+        return acceptAllAlerts();
     }
 
     // --- Alertas e navegação ---

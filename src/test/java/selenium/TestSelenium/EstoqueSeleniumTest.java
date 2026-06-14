@@ -67,7 +67,8 @@ public class EstoqueSeleniumTest {
         EstoquePage estoque = painel.irParaEstoque();
         estoque.aguardarCarregamento();
 
-        estoque.atualizarQtdIngrediente("99")
+        estoque.selecionarPrimeiroIngrediente()
+               .atualizarQtdIngrediente("99")
                .salvarAlteracaoIngrediente();
 
         assertTrue(estoque.alertaPresente(),

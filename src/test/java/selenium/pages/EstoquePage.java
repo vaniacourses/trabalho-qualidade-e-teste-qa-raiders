@@ -10,8 +10,9 @@ public class EstoquePage extends BasePage {
     private final By tabelaLanches = By.id("tabelaLanches");
     private final By tabelaIngredientes = By.id("tabelaIngredientes");
     private final By tabelaBebidas = By.id("tabelaBebidas"); 
-    private final By inputIngredienteQtd = By.id("ingredientesQuantidade"); 
-    private final By botaoAlterarIngrediente = By.cssSelector("#editarIngredientes input[value='Alterar']"); 
+    private final By inputIngredienteQtd = By.id("ingredientesQuantidade");
+    private final By botaoAlterarIngrediente = By.cssSelector("#editarIngredientes input[value='Alterar']");
+    private final By primeiraLinhaIngrediente = By.cssSelector("#tabelaIngredientes tr:nth-child(2)");
 
     public EstoquePage(WebDriver driver) {
         super(driver);
@@ -36,6 +37,12 @@ public class EstoquePage extends BasePage {
 
     public EstoquePage aguardarCarregamento() {
         waitForVisible(tabelaIngredientes);
+        return this;
+    }
+
+    public EstoquePage selecionarPrimeiroIngrediente() {
+        click(primeiraLinhaIngrediente);
+        waitForVisible(inputIngredienteQtd);
         return this;
     }
 
