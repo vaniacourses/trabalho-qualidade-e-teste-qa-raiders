@@ -2,21 +2,22 @@ package selenium.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class CadastroPage extends BasePage {
-    private final By inputNome = By.id("Espaçamentotitle");
-    private final By inputSobrenome = By.xpath("//*[@id=\"usuario\"]/input[2]");
-    private final By inputTelefone = By.xpath("//*[@id=\"usuario\"]/input[3]");
-    private final By inputUsername = By.xpath("//*[@id=\"usuario\"]/input[4]");
-    private final By inputSenha = By.xpath("//*[@id=\"usuario\"]/input[5]");
-    private final By inputRua = By.xpath("//*[@id=\"endereco\"]/input[1]");
-    private final By inputNumero = By.xpath("//*[@id=\"endereco\"]/input[2]");
-    private final By inputBairro = By.xpath("//*[@id=\"endereco\"]/input[3]");
-    private final By inputComplemento = By.xpath("//*[@id=\"endereco\"]/input[4]");
-    private final By inputCidade = By.xpath("//*[@id=\"endereco\"]/input[5]");
-    private final By comboUf = By.id("UF");
-    private final By botaoCadastrar = By.xpath("/html/body/div/div/div/div[2]/div[2]/button");
+
+    private final By inputNome        = By.name("nome");
+    private final By inputSobrenome   = By.name("sobrenome");
+    private final By inputTelefone    = By.name("telefone");
+    private final By inputUsername    = By.name("usuario");
+    private final By inputSenha       = By.name("senha");
+    private final By inputRua         = By.name("rua");
+    private final By inputNumero      = By.name("numero");
+    private final By inputBairro      = By.name("bairro");
+    private final By inputComplemento = By.name("complemento");
+    private final By inputCidade      = By.name("cidade");
+    private final By comboUf          = By.id("UF");
+
+    private final By botaoCadastrar   = By.cssSelector("button.buttonSubmit");
 
     public CadastroPage(WebDriver driver) {
         super(driver);
@@ -34,10 +35,7 @@ public class CadastroPage extends BasePage {
         type(inputComplemento, dados.getComplemento());
         type(inputCidade, dados.getCidade());
 
-        click(comboUf);
-        By opcaoUf = By.xpath("//*[@id=\"UF\"]/option[normalize-space(.)='" + dados.getUf() + "']");
-        wait.until(ExpectedConditions.elementToBeClickable(opcaoUf));
-        click(opcaoUf);
+        selectByValue(comboUf, dados.getUf());
 
         return this;
     }
