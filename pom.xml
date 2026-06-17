@@ -191,7 +191,6 @@
                 </dependencies>
                 <configuration>
                     <targetClasses>
-                        <param>Helpers.*</param>
                         <param>Controllers.cadastro</param>
                         <param>Controllers.comprar</param>
                         <param>Controllers.getRelatorioLanches</param>
