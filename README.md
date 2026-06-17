@@ -39,6 +39,7 @@
 - Link para a ferramenta de registro dos testes: https://codeburgers.testmo.net/runs/1 
 - Link para casos de teste: https://docs.google.com/document/d/1dujNiqBl8LvU-J3ZCebb3JcYdp0hdQ3gIZPoI6AeVmc/edit?usp=sharing
 - Link para o repositório forkado com o projeto original: https://github.com/lucasbogado-qa/APS-04-Lanchonete-Online-em-Java.git
+- Link para o documento da Entrega 2: https://docs.google.com/document/d/1qrHQxUQhWTA5-kWVUBvzyp99cH1zmqBtfYL4RjJRV1k/edit?tab=t.0
 - Configurações
     - Será necessário Java8+, Maven e Docker para executar o projeto. A nível dos testes unitários, utilizamos o JUnit para desenvolver e executar os casos de Teste.
 
