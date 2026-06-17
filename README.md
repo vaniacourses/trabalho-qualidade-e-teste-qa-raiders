@@ -91,8 +91,8 @@ Para a manipulação de Arquivos JSON dentro do Código Java, e de um Banco de D
 
 
 ## Execução dos testes de integração 
-- Clonar o repositório APS-04-Lanchonete-Online-em-Java
-- Abrir o terminal e executar o comando cd APS-04-Lanchonete-Online-em-Java
+- Clonar esse repositório
+- Abrir o terminal e executar o comando cd trabalho-qualidade-e-teste-qa-raiders
 - Executar o comando docker compose up -d
-- Abrir o Postman e importar a collection (está nesse repositório)
+- Abrir o Postman e importar a collection. Arquivo json Lanchonete Online - Testes de Integração.postman_collection.json
 - Rodar os testes no Postman
