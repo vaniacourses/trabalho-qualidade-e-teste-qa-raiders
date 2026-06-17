@@ -89,3 +89,11 @@ Para a manipulação de Arquivos JSON dentro do Código Java, e de um Banco de D
 ### Pré-requisitos
 - [Docker](https://www.docker.com/get-started) e [Docker Compose](https://docs.docker.com/compose/install/)
 - [Java 8+](https://adoptopenjdk.net/) e [Maven](https://maven.apache.org/)
+
+
+## Execução dos testes de integração 
+- Clonar o repositório APS-04-Lanchonete-Online-em-Java
+- Abrir o terminal e executar o comando cd APS-04-Lanchonete-Online-em-Java
+- Executar o comando docker compose up -d
+- Abrir o Postman e importar a collection (está nesse repositório)
+- Rodar os testes no Postman
