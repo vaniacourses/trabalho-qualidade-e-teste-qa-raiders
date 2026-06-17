@@ -1,0 +1,1253 @@
+{
+  "info": {
+    "_postman_id": "8234f13a-7101-4997-9e26-5048e5f0af81",
+    "name": "Lanchonete Online - Testes de Integração",
+    "description": "Suite de testes de integração ponta a ponta para a API da Lanchonete Online. Roda como um fluxo sequencial (use o Collection Runner, respeitando a ordem das pastas): cria cliente, faz login, cadastra ingrediente/bebida/lanche, monta um pedido e confere relatórios e status, encerrando com logout. Cada item criado usa um sufixo único ({{runId}}, gerado no primeiro request) para não colidir com execuções anteriores. ATENÇÃO: os Controllers leem o corpo da requisição com BufferedReader.readLine() — só a primeira linha do body é processada. Os bodies aqui já estão em uma única linha; não use 'Beautify' no editor do Postman ou vai cair em 500.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "54515939",
+    "_collection_link": "https://go.postman.co/collection/54515939-8234f13a-7101-4997-9e26-5048e5f0af81?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "00 - Setup",
+      "item": [
+        {
+          "name": "Verificar Status Inicial",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('runId', Math.floor(Date.now() / 1000).toString());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "pm.test('Resposta possui campo status', function () {",
+                  "    pm.expect(json).to.have.property('status');",
+                  "});",
+                  "pm.test('Status é ABERTO ou FECHADO', function () {",
+                  "    pm.expect(['ABERTO', 'FECHADO']).to.include(json.status);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getStatusLanchonete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getStatusLanchonete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "01 - Cliente",
+      "item": [
+        {
+          "name": "Cadastrar Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Cliente cadastrado com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Usuário Cadastrado!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"endereco\": {\"bairro\": \"Centro\", \"cidade\": \"São Paulo\", \"estado\": \"SP\", \"complemento\": \"\", \"rua\": \"Rua de Teste\", \"numero\": 100}, \"usuario\": {\"nome\": \"Cliente QA\", \"sobrenome\": \"Automatizado\", \"telefone\": \"11999999999\", \"usuario\": \"cliente_qa_{{runId}}\", \"senha\": \"senha123\"}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/cadastro",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cadastro"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Login com sucesso (não retornou erro)', function () {",
+                  "    pm.expect(pm.response.text()).to.include('carrinho.html');",
+                  "});",
+                  "pm.test('Cookie token foi definido', function () {",
+                  "    pm.expect(pm.cookies.has('token')).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"usuario\": \"cliente_qa_{{runId}}\", \"senha\": \"senha123\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validar Token (Cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Token é válido', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('valido');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/validarToken",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "validarToken"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Cliente Logado",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Retornou os dados do cliente correto', function () {",
+                  "    pm.expect(json[0].nome).to.eql('Cliente QA');",
+                  "});",
+                  "pm.collectionVariables.set('clienteId', json[0].id_cliente);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getCliente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getCliente"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Clientes (Tabela)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const usuarioEsperado = 'cliente_qa_' + pm.collectionVariables.get('runId');",
+                  "pm.test('Cliente criado aparece na listagem', function () {",
+                  "    pm.expect(json.some(c => c.usuario === usuarioEsperado)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tabela",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "tabela"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "02 - Funcionário",
+      "item": [
+        {
+          "name": "Login Funcionário (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Login com sucesso (não retornou erro)', function () {",
+                  "    pm.expect(pm.response.text()).to.include('painel.html');",
+                  "});",
+                  "pm.test('Cookie tokenFuncionario foi definido', function () {",
+                  "    pm.expect(pm.cookies.has('tokenFuncionario')).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"usuario\": \"admin\", \"senha\": \"admin\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/loginFuncionario",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "loginFuncionario"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validar Token (Funcionário)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Token é válido', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('valido');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/validarTokenFunc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "validarTokenFunc"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Salvar Funcionário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Funcionário cadastrado com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Funcionario Cadastrado!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nome\": \"Funcionario QA\", \"salario\": 2000, \"usuarioFuncionario\": \"func_qa_{{runId}}\", \"senhaFuncionario\": \"123456\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salvarFuncionario",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salvarFuncionario"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "03 - Ingredientes",
+      "item": [
+        {
+          "name": "Salvar Ingrediente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Ingrediente salvo com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Ingrediente Salvo!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nome\": \"ingrediente_qa_{{runId}}\", \"descricao\": \"Ingrediente de teste\", \"quantidade\": 50, \"ValorCompra\": 1.5, \"ValorVenda\": 3.0, \"tipo\": \"queijo\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salvarIngrediente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salvarIngrediente"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Ingredientes e Capturar ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const nomeEsperado = 'ingrediente_qa_' + pm.collectionVariables.get('runId');",
+                  "const ingrediente = json.find(i => i.nome === nomeEsperado);",
+                  "pm.test('Ingrediente criado aparece na listagem', function () {",
+                  "    pm.expect(ingrediente).to.not.be.undefined;",
+                  "});",
+                  "if (ingrediente) {",
+                  "    pm.collectionVariables.set('ingredienteId', ingrediente.id_ingrediente);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getIngredientes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getIngredientes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alterar Ingrediente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Ingrediente alterado com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Ingrediente Alterado!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{ingredienteId}}, \"nome\": \"ingrediente_qa_{{runId}}\", \"descricao\": \"Descrição alterada\", \"quantidade\": 40, \"ValorCompra\": 1.8, \"ValorVenda\": 3.5, \"tipo\": \"queijo\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alterarIngrediente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alterarIngrediente"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "04 - Bebidas",
+      "item": [
+        {
+          "name": "Salvar Bebida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Bebida salva com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Bebida Salva!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nome\": \"bebida_qa_{{runId}}\", \"descricao\": \"Bebida de teste\", \"quantidade\": 30, \"ValorCompra\": \"1.0\", \"ValorVenda\": \"2.5\", \"tipo\": \"refrigerante\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salvarBebida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salvarBebida"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Bebidas e Capturar ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const nomeEsperado = 'bebida_qa_' + pm.collectionVariables.get('runId');",
+                  "const bebida = json.find(b => b.nome === nomeEsperado);",
+                  "pm.test('Bebida criada aparece na listagem', function () {",
+                  "    pm.expect(bebida).to.not.be.undefined;",
+                  "});",
+                  "if (bebida) {",
+                  "    pm.collectionVariables.set('bebidaId', bebida.id_bebida);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getBebidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getBebidas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alterar Bebida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Bebida alterada com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Bebida Alterada!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{bebidaId}}, \"nome\": \"bebida_qa_{{runId}}\", \"descricao\": \"Descrição alterada\", \"quantidade\": 25, \"ValorCompra\": 1.2, \"ValorVenda\": 2.8, \"tipo\": \"suco\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alterarBebida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alterarBebida"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remover Bebida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Bebida removida com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Bebida Removida!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{bebidaId}}, \"nome\": \"bebida_qa_{{runId}}\", \"descricao\": \"Descrição alterada\", \"quantidade\": 25, \"ValorCompra\": 1.2, \"ValorVenda\": 2.8, \"tipo\": \"suco\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/removerBebida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "removerBebida"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Confirmar Remoção da Bebida",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const nomeRemovido = 'bebida_qa_' + pm.collectionVariables.get('runId');",
+                  "pm.test('Bebida removida não aparece mais na listagem', function () {",
+                  "    pm.expect(json.some(b => b.nome === nomeRemovido)).to.be.false;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getBebidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getBebidas"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "05 - Lanches",
+      "item": [
+        {
+          "name": "Salvar Lanche (Funcionário)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Lanche salvo com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Lanche Salvo com Sucesso!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nome\": \"lanche_qa_{{runId}}\", \"descricao\": \"Lanche de teste\", \"ValorVenda\": 15.0, \"ingredientes\": {\"ingrediente_qa_{{runId}}\": 1}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salvarLanche",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salvarLanche"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Lanches e Capturar ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const nomeEsperado = 'lanche_qa_' + pm.collectionVariables.get('runId');",
+                  "const lanche = json.find(l => l.nome === nomeEsperado);",
+                  "pm.test('Lanche criado aparece na listagem com o valor correto', function () {",
+                  "    pm.expect(lanche).to.not.be.undefined;",
+                  "    pm.expect(lanche.valor_venda).to.eql(15.0);",
+                  "});",
+                  "if (lanche) {",
+                  "    pm.collectionVariables.set('lancheId', lanche.id_lanche);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getLanches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getLanches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Ingredientes do Lanche",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const nomeEsperado = 'ingrediente_qa_' + pm.collectionVariables.get('runId');",
+                  "pm.test('Lanche contém o ingrediente vinculado', function () {",
+                  "    pm.expect(json.some(i => i.nome === nomeEsperado)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{lancheId}}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/getIngredientesPorLanche",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getIngredientesPorLanche"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Montar Lanche (Cliente)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Lanche do cliente montado com sucesso', function () {",
+                  "    pm.expect(pm.response.text()).to.include('carrinho.html?nome=lanche_cliente_qa_' + pm.collectionVariables.get('runId'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"nome\": \"lanche_cliente_qa_{{runId}}\", \"descricao\": \"Montado pelo cliente\", \"ingredientes\": {\"ingrediente_qa_{{runId}}\": 1}}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/salvarLancheCliente",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "salvarLancheCliente"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "06 - Pedidos",
+      "item": [
+        {
+          "name": "Comprar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Pedido salvo com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Pedido Salvo com Sucesso!');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"id\": {{clienteId}}, \"lanche_qa_{{runId}}\": [\"x\", \"lanche\", 1]}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comprar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comprar"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "07 - Relatórios",
+      "item": [
+        {
+          "name": "Relatório de Lanches",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "const nomeEsperado = 'lanche_qa_' + pm.collectionVariables.get('runId');",
+                  "pm.test('Relatório contém o lanche vendido', function () {",
+                  "    pm.expect(json.some(r => r.lanche === nomeEsperado)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getRelatorioLanches",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getRelatorioLanches"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Relatório de Bebidas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Resposta é um array', function () {",
+                  "    pm.expect(Array.isArray(pm.response.json())).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getRelatorioBebidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getRelatorioBebidas"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Relatório de Gastos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Resposta é um array', function () {",
+                  "    pm.expect(Array.isArray(pm.response.json())).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getRelatorioGastos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getRelatorioGastos"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "08 - Status Lanchonete",
+      "item": [
+        {
+          "name": "Alterar Status para ABERTO",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status alterado para ABERTO', function () {",
+                  "    pm.expect(pm.response.json().status).to.eql('ABERTO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"status\": \"ABERTO\"}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/alterarStatusLanchonete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "alterarStatusLanchonete"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Consultar Status",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Status persistido como ABERTO', function () {",
+                  "    pm.expect(pm.response.json().status).to.eql('ABERTO');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/getStatusLanchonete",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "getStatusLanchonete"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "09 - Encerramento",
+      "item": [
+        {
+          "name": "Logout Cliente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Logout realizado com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Deslogado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validar Token Cliente Após Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Token invalidado após logout', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('erro');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/validarToken",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "validarToken"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Logout Funcionário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status code é 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Logout realizado com sucesso', function () {",
+                  "    pm.expect(pm.response.text().trim()).to.eql('Deslogado');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "runId",
+      "value": ""
+    },
+    {
+      "key": "clienteId",
+      "value": ""
+    },
+    {
+      "key": "ingredienteId",
+      "value": ""
+    },
+    {
+      "key": "bebidaId",
+      "value": ""
+    },
+    {
+      "key": "lancheId",
+      "value": ""
+    }
+  ]
+}
