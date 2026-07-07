@@ -43,6 +43,12 @@
 - Configurações
     - Será necessário Java8+, Maven e Docker para executar o projeto. A nível dos testes unitários, utilizamos o JUnit para desenvolver e executar os casos de Teste.
 
+###Prints da plataforma de gestão dos registros de testes:
+<img width="1902" height="942" alt="image" src="https://github.com/user-attachments/assets/ffd06467-70de-4d80-b4d0-9acfefc3ba83" />
+<img width="1917" height="939" alt="image" src="https://github.com/user-attachments/assets/f8a34460-c579-4bfc-b0ce-2257c761e9ff" />
+<img width="1919" height="941" alt="image" src="https://github.com/user-attachments/assets/2ab77c5b-6ac6-4219-95bc-d3868112e508" />
+<img width="1911" height="944" alt="image" src="https://github.com/user-attachments/assets/23d3a30d-c403-46f5-8a98-04a9450c2919" />
+
 - Arquivos de teste implementados:
    - CadastroTest.java
    - ComprarTest.Java
